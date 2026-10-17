@@ -47,14 +47,14 @@ $('lo').addEventListener('click',function(){ss('sca_auth',null);ls('sca_auth',nu
 (function(){var s=ss('sca_auth')||ls('sca_auth');if(s){try{var a=JSON.parse(s);entrar(a.usuario,a.senha,!!ls('sca_auth'),true)}catch(e){}}})();
 
 /* ---------- navegação ---------- */
-var ICONS={painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
-var TABS=[['painel','Painel'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['mais','Mais']];
+var ICONS={painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
+var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['mais','Mais']];
 $('nav').innerHTML=TABS.map(function(t){return '<button type="button" data-t="'+t[0]+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[t[0]]+'</svg>'+t[1]+'</button>'}).join('');
 $('nav').addEventListener('click',function(e){var b=e.target.closest('button');if(b)ir(b.dataset.t)});
 $('rf').addEventListener('click',function(){LOADED[TAB]=false;ir(TAB,true)});
 function ir(t,force){TAB=t;document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.id==='t-'+t)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});
  var nm=TABS.filter(function(x){return x[0]===t})[0][1];$('tt').firstChild.nodeValue=nm;ss('sca_tab',t);window.scrollTo(0,0);
- if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
+ if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
 function iniciar(){ir(ss('sca_tab')||'painel')}
 
 /* ---------- PAINEL ---------- */
@@ -104,6 +104,40 @@ function pPainel(){
  });
 }
 
+
+/* ---------- ELENCOS ---------- */
+var LIM_ATL=14,LIM_COM=2,MIN_SUM=6;
+function ehCom(tp){tp=String(tp||'').toLowerCase();return tp&&tp!=='atleta'}
+function pElencos(){
+ var el=$('t-elencos');el.innerHTML=skel();
+ return Promise.all([safe(get('statusCadastroEquipes')),safe(get('atletasTodos')),safe(get('timesPublicos'))]).then(function(r){
+  var st=(r[0]&&r[0].equipes)||[],at=(r[1]&&r[1].atletas)||[],tm=(r[2]&&r[2].times)||[];
+  var esc_={};tm.forEach(function(x){esc_[String(x.nome).toLowerCase()]=x.escudo});
+  esc_['ct das montanhas']=SITE+'novo/escudos/ct-das-montanhas.png';esc_['união vôlei']=SITE+'novo/escudos/uniao-volei.png';
+  var rows=st.map(function(e){
+   var l=at.filter(function(a){return String(a.equipe).toLowerCase()===String(e.equipe).toLowerCase()});
+   var atl=l.filter(function(a){return !ehCom(a.tipo)}),com=l.filter(function(a){return ehCom(a.tipo)});
+   var pct=Math.min(100,Math.round(atl.length/LIM_ATL*100));
+   return {e:e,atl:atl,com:com,pct:pct,ok:atl.length>=MIN_SUM,esc:esc_[String(e.equipe).toLowerCase()]||''}});
+  rows.sort(function(a,b){return b.pct-a.pct||a.e.equipe.localeCompare(b.e.equipe)});
+  var tot=rows.reduce(function(s,x){return s+x.atl.length},0),meta=rows.length*LIM_ATL,geral=meta?Math.round(tot/meta*100):0,prontas=rows.filter(function(x){return x.ok}).length,comp=rows.filter(function(x){var e=x.e;return e.confirmou&&x.ok&&e.tecnico&&e.assTecnico&&e.assCapitao&&e.lgpd}).length;
+  var pill=function(ok,t){return '<span class="pill '+(ok?'ok':'er')+'">'+t+'</span> '};
+  var pend=rows.filter(function(x){var e=x.e;return !(e.confirmou&&x.ok&&e.tecnico&&e.assTecnico&&e.assCapitao&&e.lgpd)}).map(function(x){var e=x.e,f=[];if(!e.confirmou)f.push('confirmar presença');if(x.atl.length<MIN_SUM)f.push('atletas ('+x.atl.length+'/'+LIM_ATL+')');if(!e.tecnico)f.push('técnico');if(!(e.assTecnico&&e.assCapitao))f.push('assinaturas');if(!e.lgpd)f.push('termo LGPD');return '- '+e.equipe+': '+f.join(', ')});
+  var txt='Pendências de cadastro - Supercopa AFC\nPrazo: 27/11 às 13h\n\n'+(pend.length?pend.join('\n'):'Todas as equipes estão completas.');
+  el.innerHTML='<div class="sec"><h2>Visão geral</h2><small>meta: '+LIM_ATL+' atletas por equipe</small></div>'
+  +'<div class="card"><div style="display:flex;align-items:baseline;gap:10px"><b style="font:800 54px/1 var(--display);color:var(--b1)">'+geral+'%</b><span class="mut">'+N(tot)+' de '+N(meta)+' vagas de atletas preenchidas</span></div><div class="nmht" style="margin-top:10px"><i style="width:'+geral+'%"></i></div>'
+  +'<div class="grid kp" style="margin-top:14px;grid-template-columns:repeat(3,1fr)"><div class="kpi"><b>'+prontas+'/'+rows.length+'</b><small>com '+MIN_SUM+'+ atletas</small></div><div class="kpi"><b>'+comp+'/'+rows.length+'</b><small>completas</small></div><div class="kpi"><b>'+N(rows.reduce(function(s,x){return s+x.com.length},0))+'</b><small>na comissão</small></div></div></div>'
+  +'<div class="sec"><h2>Por equipe</h2><small>toque para ver o elenco</small></div><div class="grid g2">'
+  +rows.map(function(x,i){var e=x.e,cor=x.pct>=70?'var(--ok)':x.ok?'#e0a21a':'var(--er)';
+   return '<div class="card el" data-i="'+i+'" style="cursor:pointer"><div style="display:flex;gap:12px;align-items:center">'+(x.esc?'<img src="'+esc(x.esc)+'" alt="" style="width:46px;height:46px;object-fit:contain;flex:none" onerror="this.style.visibility=\'hidden\'">':'<div style="width:46px;height:46px;flex:none"></div>')+'<div style="flex:1;min-width:0"><b style="display:block;word-break:break-word">'+esc(e.equipe)+'</b><small class="mut">'+x.atl.length+'/'+LIM_ATL+' atletas · '+x.com.length+'/'+LIM_COM+' comissão</small></div><b style="font:800 30px var(--display);color:'+cor+'">'+x.pct+'%</b></div>'
+   +'<div class="nmht" style="margin:10px 0"><i style="width:'+x.pct+'%;background:'+cor+'"></i></div><div>'+pill(e.confirmou,'confirmou')+pill(x.ok,'elenco mín.')+pill(e.tecnico,'técnico')+pill(e.assTecnico&&e.assCapitao,'assinaturas')+pill(e.lgpd,'termo')+'</div>'
+   +'<div class="elx hide" style="margin-top:12px">'+(x.atl.length||x.com.length?'<div class="lst">'+x.atl.concat(x.com).map(function(a){return '<div class="row"><span class="pill">'+esc(a.numero||'-')+'</span><div class="t"><b>'+esc(a.nome)+'</b><small>'+esc(a.tipo||'Atleta')+'</small></div></div>'}).join('')+'</div>':'<p class="empty">Nenhum atleta cadastrado.</p>')+'</div></div>'}).join('')+'</div>'
+  +'<div class="sec"><h2>Cobrar as equipes</h2></div><div class="card"><p class="mut" style="margin-bottom:10px">Lista de pendências pronta para colar no grupo.</p><div class="btns"><button class="btn" id="e-c">Copiar pendências</button><button class="btn gh" id="e-w">Enviar por WhatsApp</button></div></div>';
+  el.querySelectorAll('.el').forEach(function(c){c.onclick=function(){c.querySelector('.elx').classList.toggle('hide')}});
+  $('e-c').onclick=function(){(navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(function(){toast('Pendências copiadas')},function(){toast('Não foi possível copiar',1)})};
+  $('e-w').onclick=function(){window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank')};
+ });
+}
 /* ---------- NOTÍCIAS ---------- */
 var NOT=[],AVI=[];function MESANO(){var m=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'],d=new Date();return m[d.getMonth()]+' '+d.getFullYear()}
 function pNoticias(){
@@ -219,8 +253,8 @@ function pPremios(){
  return Promise.all([safe(get('ranking_quiz')),safe(get('rankingDestaque')),safe(post('listarVotosDestaque',{})),safe(get('votacao')),safe(get('destaques')),safe(get('timesPublicos'))]).then(function(r){
   var q=(r[0]&&r[0].ranking)||[],rk=(r[1]&&r[1].ranking)||[],vt=(r[2]&&r[2].votos)||[],vo=r[3]||{};
   var dpl=((r[4]&&r[4].destaques)||[]).slice().reverse(),tms=((r[5]&&r[5].times)||[]).map(function(x){return x.nome});
-  el.innerHTML=destaqueHtml(dpl,tms)+'<div class="sec"><h2>Quiz</h2><small>'+q.length+' participante(s)</small></div><div class="card"><p class="mut" style="margin-bottom:8px">Ranking geral: maior % de acertos; no empate, menor tempo. Vale o melhor resultado por WhatsApp. Hoje o ranking mistura vôlei e basquete.</p><div class="lst">'+(q.length?q.slice(0,15).map(function(p,i){return '<div class="row"><span class="pill'+(i===0?' ok':'')+'">'+(i+1)+'º</span><div class="t"><b>'+esc(p.nome)+'</b><small>'+p.acertos+' de '+p.total+' · '+p.tempo+'s · '+esc(p.fone)+'</small></div><b style="font:800 22px var(--display)">'+Math.round(p.pct)+'%</b>'+(i===0?'<a class="btn sm" target="_blank" rel="noopener" href="'+wa(p.fone,'Olá, '+p.nome.split(' ')[0]+'! Você ficou em 1º lugar no Quiz da Supercopa AFC. Parabéns! Venha buscar seu prêmio com a organização.')+'">Avisar</a>':'')+'</div>'}).join(''):'<p class="empty">Ninguém respondeu ainda.</p>')+'</div></div>'
-  +'<div class="sec"><h2>Atleta destaque</h2><small>'+N(vo.totalVotos||0)+' votos · votação '+(vo.aberta?'aberta':'fechada')+'</small></div><div class="card"><div class="lst">'+(rk.length?rk.slice(0,10).map(function(p){return '<div class="row"><span class="pill">'+p.pos+'º</span><div class="t"><b>'+esc(p.nome)+'</b><small>'+esc(p.equipe)+' · camisa '+esc(p.numero||'-')+'</small></div><b style="font:800 20px var(--display)">'+p.votos+' <span class="mut" style="font:500 13px var(--body)">('+p.pct+'%)</span></b></div>'}).join(''):'<p class="empty">Sem votos ainda.</p>')+'</div></div>'
+  el.innerHTML=destaqueHtml(dpl,tms)+'<div class="sec"><h2>Quiz</h2><small>'+q.length+' participante(s)</small></div><div class="card"><p class="mut" style="margin-bottom:8px">Ranking geral: maior % de acertos; no empate, menor tempo. Vale o melhor resultado por WhatsApp. Hoje o ranking mistura vôlei e basquete.</p><div class="lst">'+(q.length?q.slice(0,30).map(function(p,i){return '<div class="row"><span class="pill'+(i===0?' ok':'')+'">'+(i+1)+'º</span><div class="t"><b>'+esc(p.nome)+'</b><small>'+p.acertos+' de '+p.total+' · '+p.tempo+'s · '+esc(p.fone)+'</small></div><b style="font:800 22px var(--display)">'+Math.round(p.pct)+'%</b>'+(i===0?'<a class="btn sm" target="_blank" rel="noopener" href="'+wa(p.fone,'Olá, '+p.nome.split(' ')[0]+'! Você ficou em 1º lugar no Quiz da Supercopa AFC. Parabéns! Venha buscar seu prêmio com a organização.')+'">Avisar</a>':'')+'</div>'}).join(''):'<p class="empty">Ninguém respondeu ainda.</p>')+'</div></div>'
+  +'<div class="sec"><h2>Atleta da galera</h2><small>'+N(vo.totalVotos||0)+' votos · votação '+(vo.aberta?'aberta':'fechada')+'</small></div><div class="card"><div class="lst">'+(rk.length?rk.slice(0,20).map(function(p){return '<div class="row"><span class="pill">'+p.pos+'º</span><div class="t"><b>'+esc(p.nome)+'</b><small>'+esc(p.equipe)+' · camisa '+esc(p.numero||'-')+'</small></div><b style="font:800 20px var(--display)">'+p.votos+' <span class="mut" style="font:500 13px var(--body)">('+p.pct+'%)</span></b></div>'}).join(''):'<p class="empty">Sem votos ainda.</p>')+'</div></div>'
   +'<div class="sec"><h2>Últimos votos</h2></div><div class="card"><div class="lst">'+(vt.length?vt.slice(0,12).map(function(v){return '<div class="row"><div class="t"><b>'+esc(v.atleta_nome)+'</b><small>'+esc(v.equipe)+' · votante '+esc(v.nome_votante)+' · fone final '+esc(v.tel_final)+(v.teste?' · teste':'')+'</small></div><small class="mut">'+esc(v.criado_em)+'</small></div>'}).join(''):'<p class="empty">Nenhum voto.</p>')+'</div></div>';
  });
 }

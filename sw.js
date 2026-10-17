@@ -1,5 +1,5 @@
 // Cache só do "casco" do app; todos os dados vêm sempre da rede.
-const V = 'sc-admin-v3';
+const V = 'sc-admin-v4';
 const CASCO = ['./', './index.html', './admin.js', './logo-branco.png', './icon-192.png', './icon-512.png', './manifest.webmanifest'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(CASCO)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
