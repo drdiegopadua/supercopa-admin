@@ -105,7 +105,7 @@ function pPainel(){
 }
 
 /* ---------- NOTÍCIAS ---------- */
-var NOT=[],AVI=[];
+var NOT=[],AVI=[];function MESANO(){var m=['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'],d=new Date();return m[d.getMonth()]+' '+d.getFullYear()}
 function pNoticias(){
  var el=$('t-noticias');el.innerHTML=skel();
  return Promise.all([get('noticias'),get('avisos')]).then(function(r){NOT=(r[0].noticias||[]).slice().reverse();AVI=r[1].avisos||[];desenharNoticias()});
@@ -122,11 +122,15 @@ function desenharNoticias(){
 }
 function formNoticia(n){
  var f=$('nf');n=n||{};
- f.innerHTML='<div class="fr"><div class="f"><span>Ícone</span><input id="n-i" maxlength="4" value="'+esc(n.ic||'')+'" placeholder="📰"></div><div class="f"><span>Categoria</span><select id="n-c">'+['Notícia','Jogo','Patrocínio','Resultado','Bastidores','Aviso'].map(function(c){return '<option'+(c===n.cat?' selected':'')+'>'+c+'</option>'}).join('')+'</select></div></div>'
- +'<div class="f"><span>Título</span><input id="n-t" maxlength="140" value="'+esc(n.titulo||'')+'"></div><div class="f"><span>Data (texto livre)</span><input id="n-d" value="'+esc(n.data||'')+'" placeholder="novembro 2026"></div><div class="f"><span>Texto</span><textarea id="n-x">'+esc(n.corpo||'')+'</textarea></div>'
- +'<label class="chk"><input type="checkbox" id="n-p"> Avisar por push ao publicar</label><div class="btns"><button class="btn" id="n-s">'+(n.id?'Salvar alterações':'Publicar notícia')+'</button>'+(n.id?'<button class="btn gh" id="n-n">Cancelar</button><button class="btn er" id="n-e">Excluir</button>':'')+'</div>';
+ f.innerHTML='<div class="chips" id="n-em">'+['📰','🏆','🏐','🏀','📣','⚠️','👑','🎉','📅','📍'].map(function(e){return '<button type="button" data-e="'+e+'">'+e+'</button>'}).join('')+'</div><div class="fr"><div class="f"><span>Ícone</span><input id="n-i" maxlength="4" value="'+esc(n.ic||'')+'" placeholder="📰"></div><div class="f"><span>Categoria</span><select id="n-c">'+['Notícia','Jogo','Patrocínio','Resultado','Bastidores','Aviso'].map(function(c){return '<option'+(c===n.cat?' selected':'')+'>'+c+'</option>'}).join('')+'</select></div></div>'
+ +'<div class="f"><span>Título</span><input id="n-t" maxlength="140" value="'+esc(n.titulo||'')+'"></div><div class="f"><span>Data (texto livre)</span><input id="n-d" value="'+esc(n.data||(n.id?'':MESANO()))+'" placeholder="novembro 2026"></div><div class="f"><span>Texto</span><textarea id="n-x">'+esc(n.corpo||'')+'</textarea></div>'
+ +'<div class="mut" style="margin:0 0 6px">Como aparece no app</div><div class="al in" id="n-v" style="margin-bottom:14px"></div>'+'<label class="chk"><input type="checkbox" id="n-p"> Avisar por push ao publicar</label><div class="btns"><button class="btn" id="n-s">'+(n.id?'Salvar alterações':'Publicar notícia')+'</button>'+(n.id?'<button class="btn gh" id="n-n">Cancelar</button><button class="btn er" id="n-e">Excluir</button>':'')+'</div>';
+ var pv=function(){$('n-v').innerHTML='<div style="display:flex;gap:10px"><span style="font-size:26px">'+esc($('n-i').value||'📰')+'</span><div><b>'+esc($('n-t').value||'Título da notícia')+'</b><span class="mut">'+esc($('n-c').value)+' · '+esc($('n-d').value)+'</span><div style="margin-top:4px">'+esc($('n-x').value.slice(0,140))+'</div></div></div>'};
+ ['n-i','n-t','n-c','n-d','n-x'].forEach(function(i){$(i).addEventListener('input',pv)});pv();
+ $('n-em').onclick=function(e){var b=e.target.closest('button');if(b){$('n-i').value=b.dataset.e;pv()}};
+ if(!n.id){try{var dr=JSON.parse(ls('sca_nd')||'null');if(dr){$('n-t').value=dr.t||'';$('n-x').value=dr.x||'';pv()}}catch(e){}['n-t','n-x'].forEach(function(i){$(i).addEventListener('input',function(){ls('sca_nd',JSON.stringify({t:$('n-t').value,x:$('n-x').value}))})})}
  $('n-s').onclick=function(){var t=$('n-t').value.trim();if(!t)return toast('Informe o título',1);var b=$('n-s');b.disabled=true;
-  post('salvarNoticia',{id:n.id,ic:$('n-i').value.trim()||'📰',cat:$('n-c').value,titulo:t,data:$('n-d').value.trim(),corpo:$('n-x').value.trim()}).then(function(r){b.disabled=false;if(!r.ok)return toast(r.erro||'Erro ao salvar',1);toast(n.id?'Notícia atualizada':'Notícia publicada');
+  post('salvarNoticia',{id:n.id,ic:$('n-i').value.trim()||'📰',cat:$('n-c').value,titulo:t,data:$('n-d').value.trim(),corpo:$('n-x').value.trim()}).then(function(r){b.disabled=false;if(!r.ok)return toast(r.erro||'Erro ao salvar',1);toast(n.id?'Notícia atualizada':'Notícia publicada');ls('sca_nd',null);
    if($('n-p').checked)enviarPush(t,$('n-x').value.trim().slice(0,110)||'Nova notícia no app da Supercopa',APPU).then(function(x){toast(x.ok?'Push enviado':'Notícia salva, mas o push falhou',!x.ok)});pNoticias()}).catch(function(){b.disabled=false;toast('Falha de conexão',1)})};
  if(n.id){$('n-n').onclick=function(){formNoticia(null)};$('n-e').onclick=function(){var b=$('n-e');if(b.dataset.c!=='1'){b.dataset.c='1';b.textContent='Confirmar exclusão?';return}post('excluirNoticia',{id:n.id}).then(function(r){if(r.ok){toast('Notícia excluída');pNoticias()}else toast(r.erro,1)})}}
 }
