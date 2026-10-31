@@ -47,14 +47,14 @@ $('lo').addEventListener('click',function(){ss('sca_auth',null);ls('sca_auth',nu
 (function(){var s=ss('sca_auth')||ls('sca_auth');if(s){try{var a=JSON.parse(s);entrar(a.usuario,a.senha,!!ls('sca_auth'),true)}catch(e){}}})();
 
 /* ---------- navegação ---------- */
-var ICONS={painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
-var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['mais','Mais']];
+var ICONS={relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
+var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['mais','Mais']];
 $('nav').innerHTML=TABS.map(function(t){return '<button type="button" data-t="'+t[0]+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[t[0]]+'</svg>'+t[1]+'</button>'}).join('');
 $('nav').addEventListener('click',function(e){var b=e.target.closest('button');if(b)ir(b.dataset.t)});
 $('rf').addEventListener('click',function(){LOADED[TAB]=false;ir(TAB,true)});
 function ir(t,force){TAB=t;document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.id==='t-'+t)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});
  var nm=TABS.filter(function(x){return x[0]===t})[0][1];$('tt').firstChild.nodeValue=nm;ss('sca_tab',t);window.scrollTo(0,0);
- if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
+ if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
 function iniciar(){ir(ss('sca_tab')||'painel')}
 
 /* ---------- PAINEL ---------- */
@@ -261,6 +261,13 @@ function pPremios(){
 
 /* ---------- MAIS ---------- */
 var CHK=['Criar a chave do vôlei (Torneio → Criar chave)','Todas as equipes com atletas, técnico e assinaturas','Ensaiar o protocolo de contingência da súmula','Confirmar árbitros cadastrados com assinatura','Testar a súmula com um jogo de teste e limpar os testes','Conferir a transmissão ao vivo (link do YouTube)','Mandar push avisando que o app está pronto','Liberar o quiz de vôlei (dia 28/11)','Abrir a votação do atleta destaque','Manter o projeto do Supabase ativo e fazer backup'];
+function pRelatorios(){
+ var el=$('t-relatorios'),base=location.href.replace(/[^\/]*$/,'')+'relatorio/';
+ el.innerHTML='<div class="sec"><h2>Relatório das Edições</h2><small>revista em PDF, 2021 a 2026</small></div><div class="card"><p class="mut">Gráficos e números das seis edições, no modelo do relatório anual do Instituto: equipes, cidades, alcance no Instagram, acessos ao site e ao app, visibilidade dos patrocinadores, impacto econômico e parceiros. Os acessos e as exibições de logos entram com os valores do momento em que o relatório é aberto.</p><div class="btns"><a class="btn" href="'+base+'relatorio-supercopa-edicoes.pdf" target="_blank" rel="noopener">Abrir o PDF pronto</a><a class="btn gh" href="'+base+'index.html" target="_blank" rel="noopener">Gerar com números de hoje</a></div><p class="mut" style="margin-top:10px">Para salvar uma versão atualizada: abra “Gerar com números de hoje” no computador e use Imprimir → Salvar como PDF (papel A4 paisagem, margens nenhuma, gráficos de fundo ligados).</p></div>'
+ +'<div class="sec"><h2>Feedback do público</h2></div><div class="card"><p class="mut">Link para enviar no WhatsApp:</p><p><b>https://www.supercopaafc.com.br/#feedback</b></p><div class="btns"><button class="btn gh" id="r-fb">Copiar link</button></div></div>';
+ $('r-fb').onclick=function(){var u='https://www.supercopaafc.com.br/#feedback';(navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(function(){toast('Link copiado')}).catch(function(){toast('Copie manualmente: '+u)})};
+ return Promise.resolve();
+}
 function pMais(){
  var el=$('t-mais'),ck=JSON.parse(ls('sca_ck')||'{}');
  var links=[['Site oficial',SITE],['App do público',APPU],['Painel completo',"https://drdiegopadua.github.io/supercopapainelcontrole/"],['Súmula (mesa)','https://drdiegopadua.github.io/supercopapainelcontrole/mesa.html'],['Árbitro 2','https://drdiegopadua.github.io/supercopapainelcontrole/arbitro2.html'],['TV basquete','https://drdiegopadua.github.io/supercopapainelcontrole/tv-basquete.html']];
