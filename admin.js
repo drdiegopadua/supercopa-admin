@@ -47,15 +47,15 @@ $('lo').addEventListener('click',function(){ss('sca_auth',null);ls('sca_auth',nu
 (function(){var s=ss('sca_auth')||ls('sca_auth');if(s){try{var a=JSON.parse(s);entrar(a.usuario,a.senha,!!ls('sca_auth'),true)}catch(e){}}})();
 
 /* ---------- navegação ---------- */
-var ICONS={relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
-var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['mais','Mais']];
+var ICONS={zap:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/>',relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
+var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['zap','WhatsApp'],['mais','Mais']];
 $('nav').innerHTML=TABS.map(function(t){return '<button type="button" data-t="'+t[0]+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[t[0]]+'</svg>'+t[1]+'</button>'}).join('');
 $('nav').addEventListener('click',function(e){var b=e.target.closest('button');if(b)ir(b.dataset.t)});
 $('rf').addEventListener('click',function(){LOADED[TAB]=false;ir(TAB,true)});
 function ir(t,force){TAB=t;document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.id==='t-'+t)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});
  var nm=TABS.filter(function(x){return x[0]===t})[0][1];$('tt').firstChild.nodeValue=nm;ss('sca_tab',t);window.scrollTo(0,0);
- if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
-function iniciar(){ir(ss('sca_tab')||'painel')}
+ if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,zap:pZap,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
+function iniciar(){var h=location.hash==='#zap';ir(h?'zap':(ss('sca_tab')||'painel'));zLiga()}
 
 /* ---------- PAINEL ---------- */
 function kpi(v,l,sub){return '<div class="card kpi"><b>'+v+'</b><small>'+l+'</small>'+(sub?'<i>'+sub+'</i>':'')+'</div>'}
@@ -261,6 +261,66 @@ function pPremios(){
 
 /* ---------- MAIS ---------- */
 var CHK=['Criar a chave do vôlei (Torneio → Criar chave)','Todas as equipes com atletas, técnico e assinaturas','Ensaiar o protocolo de contingência da súmula','Confirmar árbitros cadastrados com assinatura','Testar a súmula com um jogo de teste e limpar os testes','Conferir a transmissão ao vivo (link do YouTube)','Mandar push avisando que o app está pronto','Liberar o quiz de vôlei (dia 28/11)','Abrir a votação do atleta destaque','Manter o projeto do Supabase ativo e fazer backup'];
+/* ---------- WHATSAPP: texto pronto + aviso quando o jogo muda ---------- */
+var ZAP={D:{},mod:'volei',pend:null,prev:null,tm:null};
+var Z_FASE={grupos:'Fase de grupos',oitavas:'Oitavas de final',quartas:'Quartas de final',semi:'Semifinal',semifinal:'Semifinal',final:'FINAL',terceiro:'Disputa do 3º lugar'};
+var Z_ROD='\n📲 Acompanhe ao vivo: https://www.supercopaafc.com.br';
+function zFn(d){return d?String(d).split('-').reverse().slice(0,2).join('/'):''}
+function zNome(j,l){return j[l+'Definida']?j[l]:(j['rotulo'+(l==='casa'?'Casa':'Visitante')]||'A definir')}
+function zCab(m){return (m==='basquete'?'🏀':'🏐')+' *SUPERCOPA AFC 2026*\n'}
+function zLoc(j){return [j.hora&&('⏰ '+j.hora),j.quadra&&('📍 '+j.quadra)].filter(Boolean).join('  ')}
+function zIni(j,m){return zCab(m)+'*VAI COMEÇAR!* 🔥\n'+(Z_FASE[j.fase]||j.fase)+(j.grupo?' · Grupo '+j.grupo:'')+'\n\n*'+zNome(j,'casa')+'* x *'+zNome(j,'visitante')+'*\n'+zLoc(j)+Z_ROD}
+function zRes(j,m){var p=(j.parciais||[]).map(function(x){return x.a+'x'+x.b}).join(' · ');if(j.wo)return zCab(m)+'*W.O.* ⚠️\n'+zNome(j,'casa')+' x '+zNome(j,'visitante')+'\nVitória de *'+j.vencedor+'*'+Z_ROD;return zCab(m)+'*FIM DE JOGO* ✅\n'+(Z_FASE[j.fase]||j.fase)+(j.grupo?' · Grupo '+j.grupo:'')+'\n\n'+zNome(j,'casa')+' *'+j.setsCasa+' x '+j.setsVisitante+'* '+zNome(j,'visitante')+(p?'\nParciais: '+p:'')+'\n🏆 Vitória de *'+j.vencedor+'*'+Z_ROD}
+function zClassif(g,m){var md=['🥇','🥈','🥉'];return zCab(m)+'*CLASSIFICAÇÃO · GRUPO '+g.grupo+'*\n\n'+g.tabela.map(function(t,i){return (md[i]||(i+1)+'º')+' *'+t.equipe+'* · '+t.pontos+' pts · '+t.vitorias+'V '+t.derrotas+'D · saldo '+(t.saldoSets>0?'+':'')+t.saldoSets+' sets'}).join('\n')+Z_ROD}
+function zAgenda(dia,js,m){return zCab(m)+'*JOGOS DE '+zFn(dia)+'*\n\n'+js.map(function(j){return '⏰ '+(j.hora||'--')+' · '+zNome(j,'casa')+' x '+zNome(j,'visitante')+(j.quadra?' ('+j.quadra+')':'')}).join('\n')+Z_ROD}
+function zBusca(){return Promise.all([safe(get('torneio',{modalidade:'volei'})),safe(get('torneio',{modalidade:'basquete'}))]).then(function(r){ZAP.D={volei:r[0]||{},basquete:r[1]||{}};return ZAP.D})}
+/* compara com a leitura anterior e avisa: jogo começou / jogo acabou */
+function zVigia(){
+ zBusca().then(function(D){
+  var snap={};['volei','basquete'].forEach(function(m){((D[m]&&D[m].jogos)||[]).forEach(function(j){snap[m+':'+j.id]={s:j.status,j:j,m:m}})});
+  if(ZAP.prev){Object.keys(snap).forEach(function(k){var a=ZAP.prev[k],b=snap[k];if(!a||a.s===b.s)return;
+   var fim=b.s==='finalizado',ini=/andamento|ao_vivo|aovivo/i.test(b.s);if(!fim&&!ini)return;
+   var t=fim?zRes(b.j,b.m):zIni(b.j,b.m),tit=(fim?'Fim de jogo: ':'Vai começar: ')+zNome(b.j,'casa')+' x '+zNome(b.j,'visitante');
+   ZAP.pend={t:t,tit:tit};try{ss('sca_zpend',JSON.stringify(ZAP.pend))}catch(e){}
+   if('Notification' in window&&Notification.permission==='granted'){try{navigator.serviceWorker.ready.then(function(reg){reg.showNotification(tit,{body:'Toque para abrir o texto e enviar no grupo.',icon:'icon-192.png',tag:'zap-'+k,data:{tab:'zap'}})})}catch(e){new Notification(tit)}}
+   if(TAB==='zap')pZap();else toast('📲 '+tit+' (aba WhatsApp)')})}
+  ZAP.prev=snap});
+}
+function zLiga(){if(ZAP.tm)return;zVigia();ZAP.tm=setInterval(zVigia,20000)}
+function pZap(){
+ var el=$('t-zap');el.innerHTML=skel();
+ return zBusca().then(function(){
+  var mod=ss('sca_zmod')||'volei';
+  if(!ZAP.pend){try{ZAP.pend=JSON.parse(ss('sca_zpend')||'null')}catch(e){}}
+  var T=ZAP.D[mod],js=((T&&T.jogos)||[]).slice().sort(function(a,b){return (a.data+a.hora)<(b.data+b.hora)?-1:1}),gr=(T&&T.grupos)||[],dias={};
+  js.forEach(function(j){(dias[j.data]=dias[j.data]||[]).push(j)});
+  var perm=('Notification' in window)?Notification.permission:'unsupported';
+  var h='<div class="sec"><h2>Mensagens do WhatsApp</h2><small>o texto sai pronto; você só toca em enviar</small></div>';
+  if(perm!=='granted')h+='<div class="card"><p class="mut">'+(perm==='unsupported'?'Este aparelho não permite notificações do navegador.':perm==='denied'?'As notificações estão bloqueadas nas configurações do navegador.':'Ative o aviso para receber uma notificação quando um jogo começar ou terminar.')+'</p>'+(perm==='default'?'<div class="btns"><button class="btn" id="z-n">Ativar avisos</button></div>':'')+'</div>';
+  else h+='<div class="card"><p class="mut">Avisos ativos: com o app aberto (ou em segundo plano), você recebe uma notificação quando um jogo começa ou termina.</p></div>';
+  if(ZAP.pend)h+='<div class="card" style="border-left:4px solid var(--b1)"><b>'+esc(ZAP.pend.tit)+'</b><div class="btns" style="margin-top:8px"><button class="btn" id="z-p">Abrir texto</button></div></div>';
+  h+='<div class="card"><div class="btns"><button class="btn'+(mod==='volei'?'':' gh')+'" data-m="volei">Vôlei</button><button class="btn'+(mod==='basquete'?'':' gh')+'" data-m="basquete">Basquete</button></div></div>';
+  if(!js.length)h+='<div class="al"><div><b>Sem jogos ainda</b>Crie a chave em Torneio no painel completo e as mensagens aparecem aqui.</div></div>';
+  else{
+   h+='<div class="sec"><h2>Jogos</h2></div><div class="card">'+js.map(function(j){var fim=j.status==='finalizado';return '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid rgba(128,128,128,.25)"><div style="min-width:0"><b>'+esc(zNome(j,'casa'))+' x '+esc(zNome(j,'visitante'))+'</b><br><small class="mut">'+zFn(j.data)+' '+esc(j.hora||'')+' · '+esc(Z_FASE[j.fase]||j.fase)+(fim?' · '+j.setsCasa+'x'+j.setsVisitante:'')+'</small></div><div class="btns" style="flex:none"><button class="btn gh" data-i="'+esc(j.id)+'" data-k="ini">Vai começar</button>'+(fim?'<button class="btn" data-i="'+esc(j.id)+'" data-k="res">Resultado</button>':'')+'</div></div>'}).join('')+'</div>';
+   h+='<div class="sec"><h2>Agenda e classificação</h2></div><div class="card"><div class="btns">'+Object.keys(dias).map(function(d){return '<button class="btn gh" data-d="'+d+'">Jogos de '+zFn(d)+'</button>'}).join('')+gr.map(function(g,i){return '<button class="btn gh" data-g="'+i+'">Classificação '+esc(g.grupo)+'</button>'}).join('')+(T.campeao?'<button class="btn" data-c="1">Campeão</button>':'')+'</div></div>';
+  }
+  h+='<div class="sec"><h2>Mensagem</h2></div><div class="card"><textarea id="z-t" rows="10" style="width:100%;font:inherit;padding:10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit" placeholder="Toque em um botão acima para gerar o texto. Você pode editar antes de enviar."></textarea><div class="btns" style="margin-top:10px"><a class="btn" id="z-w" target="_blank" rel="noopener" href="#">Enviar no WhatsApp</a><button class="btn gh" id="z-c">Copiar</button></div><p class="mut" style="margin-top:8px">Ao tocar em enviar, o WhatsApp abre e você escolhe o grupo.</p></div>';
+  el.innerHTML=h;
+  var ta=$('z-t'),upd=function(){$('z-w').href='https://wa.me/?text='+encodeURIComponent(ta.value)};ta.oninput=upd;
+  var set=function(t){ta.value=t;upd();ta.scrollIntoView({behavior:'smooth',block:'center'})};
+  var q=function(s,f){el.querySelectorAll(s).forEach(f)};
+  q('[data-m]',function(b){b.onclick=function(){ss('sca_zmod',b.dataset.m);pZap()}});
+  q('[data-k]',function(b){b.onclick=function(){var j=js.filter(function(x){return x.id===b.dataset.i})[0];set(b.dataset.k==='ini'?zIni(j,mod):zRes(j,mod))}});
+  q('[data-d]',function(b){b.onclick=function(){set(zAgenda(b.dataset.d,dias[b.dataset.d],mod))}});
+  q('[data-g]',function(b){b.onclick=function(){set(zClassif(gr[+b.dataset.g],mod))}});
+  q('[data-c]',function(b){b.onclick=function(){var c=T.campeao;set(zCab(mod)+'🏆 *CAMPEÃO!* 🏆\n\nParabéns, *'+(c.equipe||c.nome||c)+'*!\n\nObrigado a todas as equipes, atletas e ao público que fizeram a Supercopa.'+Z_ROD)}});
+  var zp=$('z-p');if(zp)zp.onclick=function(){set(ZAP.pend.t)};
+  var zn=$('z-n');if(zn)zn.onclick=function(){Notification.requestPermission().then(function(){pZap()})};
+  var cp=$('z-c');cp.onclick=function(){(navigator.clipboard?navigator.clipboard.writeText(ta.value):Promise.reject()).then(function(){toast('Texto copiado')}).catch(function(){ta.select();toast('Selecione e copie',1)})};
+  if(ZAP.pend&&!ta.value)set(ZAP.pend.t);
+ });
+}
 function pRelatorios(){
  var el=$('t-relatorios'),base=location.href.replace(/[^\/]*$/,'')+'relatorio/';
  el.innerHTML='<div class="sec"><h2>Relatório das Edições</h2><small>revista em PDF, 2021 a 2026</small></div><div class="card"><p class="mut">Gráficos e números das seis edições, no modelo do relatório anual do Instituto: equipes, cidades, alcance no Instagram, acessos ao site e ao app, visibilidade dos patrocinadores, impacto econômico e parceiros. Os acessos e as exibições de logos entram com os valores do momento em que o relatório é aberto.</p><div class="btns"><a class="btn" href="'+base+'relatorio-supercopa-edicoes.pdf" target="_blank" rel="noopener">Abrir o PDF pronto</a><a class="btn gh" href="'+base+'index.html" target="_blank" rel="noopener">Gerar com números de hoje</a></div><p class="mut" style="margin-top:10px">Para salvar uma versão atualizada: abra “Gerar com números de hoje” no computador e use Imprimir → Salvar como PDF (papel A4 paisagem, margens nenhuma, gráficos de fundo ligados).</p></div>'
