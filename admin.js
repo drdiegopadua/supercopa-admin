@@ -49,10 +49,22 @@ $('lo').addEventListener('click',function(){ss('sca_auth',null);ls('sca_auth',nu
 /* ---------- navegação ---------- */
 var ICONS={zap:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/>',relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
 var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['zap','WhatsApp'],['mais','Mais']];
-$('nav').innerHTML=TABS.map(function(t){return '<button type="button" data-t="'+t[0]+'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+ICONS[t[0]]+'</svg>'+t[1]+'</button>'}).join('');
-$('nav').addEventListener('click',function(e){var b=e.target.closest('button');if(b)ir(b.dataset.t)});
+var MAIN=['painel','elencos','noticias','zap'];
+var SVG=function(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+k+'</svg>'};
+var IMENU='<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>';
+function tabBtn(t,cls){return '<button type="button" data-t="'+t[0]+'"'+(cls?' class="'+cls+'"':'')+'>'+SVG(ICONS[t[0]])+'<span>'+t[1]+'</span></button>'}
+var EXTRA=TABS.filter(function(t){return MAIN.indexOf(t[0])<0});
+$('nav').innerHTML=TABS.filter(function(t){return MAIN.indexOf(t[0])>=0}).map(function(t){return tabBtn(t)}).join('')
+ +EXTRA.map(function(t){return tabBtn(t,'x')}).join('')
+ +'<button type="button" class="mn" id="nmais">'+SVG(IMENU)+'<span>Mais</span></button>';
+var SH=document.createElement('div');SH.className='sheet';SH.id='sheet';
+SH.innerHTML='<div class="sh-bg" data-c="1"></div><div class="sh-p"><i class="sh-h"></i><b>Mais opções</b><div class="sh-g">'+EXTRA.map(function(t){return '<button type="button" data-t="'+t[0]+'">'+SVG(ICONS[t[0]])+'<span>'+(t[0]==='mais'?'Checklist e atalhos':t[1])+'</span></button>'}).join('')+'</div></div>';
+document.body.appendChild(SH);
+function fechaSheet(){SH.classList.remove('on')}
+SH.addEventListener('click',function(e){if(e.target.dataset.c)return fechaSheet();var b=e.target.closest('button[data-t]');if(b){fechaSheet();ir(b.dataset.t)}});
+$('nav').addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;if(b.id==='nmais'){SH.classList.toggle('on');return}fechaSheet();ir(b.dataset.t)});
 $('rf').addEventListener('click',function(){LOADED[TAB]=false;ir(TAB,true)});
-function ir(t,force){TAB=t;document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.id==='t-'+t)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});
+function ir(t,force){TAB=t;document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.id==='t-'+t)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});var nm2=$('nmais');if(nm2)nm2.classList.toggle('on',MAIN.indexOf(t)<0);
  var nm=TABS.filter(function(x){return x[0]===t})[0][1];$('tt').firstChild.nodeValue=nm;ss('sca_tab',t);window.scrollTo(0,0);
  if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,zap:pZap,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
 function iniciar(){var h=location.hash==='#zap';ir(h?'zap':(ss('sca_tab')||'painel'));zLiga()}
