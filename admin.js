@@ -47,8 +47,8 @@ $('lo').addEventListener('click',function(){ss('sca_auth',null);ls('sca_auth',nu
 (function(){var s=ss('sca_auth')||ls('sca_auth');if(s){try{var a=JSON.parse(s);entrar(a.usuario,a.senha,!!ls('sca_auth'),true)}catch(e){}}})();
 
 /* ---------- navegação ---------- */
-var ICONS={zap:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/>',relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
-var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['zap','WhatsApp'],['mais','Mais']];
+var ICONS={chat:'<path d="M4 5h16v11H9l-5 4z"/>',zap:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/>',relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
+var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['zap','WhatsApp'],['chat','Chat'],['mais','Mais']];
 var MAIN=['painel','elencos','noticias','zap'];
 var SVG=function(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+k+'</svg>'};
 var IMENU='<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>';
@@ -66,7 +66,7 @@ $('nav').addEventListener('click',function(e){var b=e.target.closest('button');i
 $('rf').addEventListener('click',function(){LOADED[TAB]=false;ir(TAB,true)});
 function ir(t,force){TAB=t;document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.id==='t-'+t)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});var nm2=$('nmais');if(nm2)nm2.classList.toggle('on',MAIN.indexOf(t)<0);
  var nm=TABS.filter(function(x){return x[0]===t})[0][1];$('tt').firstChild.nodeValue=nm;ss('sca_tab',t);window.scrollTo(0,0);
- if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,zap:pZap,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
+ if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,zap:pZap,chat:pChat,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
 function iniciar(){var h=location.hash==='#zap';ir(h?'zap':(ss('sca_tab')||'painel'));zLiga()}
 
 /* ---------- PAINEL ---------- */
@@ -333,6 +333,22 @@ function pZap(){
   var zn=$('z-n');if(zn)zn.onclick=function(){Notification.requestPermission().then(function(){pZap()})};
   var cp=$('z-c');cp.onclick=function(){(navigator.clipboard?navigator.clipboard.writeText(ta.value):Promise.reject()).then(function(){toast('Texto copiado')}).catch(function(){ta.select();toast('Selecione e copie',1)})};
   if(ZAP.pend&&!ta.value)set(ZAP.pend.t);
+ });
+}
+function pChat(){
+ var el=$('t-chat');el.innerHTML=skel();
+ return get('chat').then(function(d){
+  var ms=(d.mensagens||[]).slice().reverse(),est=d.pausado?'pausado':d.aberta?'aberto':d.antes?'ainda não abriu':'encerrado';
+  el.innerHTML='<div class="sec"><h2>Chat da galera</h2><small>chat '+est+' · '+ms.length+' mensagens recentes</small></div>'
+  +'<div class="card"><div class="btns"><button class="btn'+(d.pausado?'':' gh')+'" id="c-p">'+(d.pausado?'Reabrir o chat':'Pausar o chat')+'</button><button class="btn gh" id="c-r">Atualizar</button></div><p class="mut" style="margin-top:8px">Abre sábado 28/11 às 12h e fecha domingo 29/11 às 23h. Depois disso fica só para leitura.</p></div>'
+  +'<div class="sec"><h2>Mensagem da organização</h2></div><div class="card"><textarea id="c-t" rows="3" maxlength="280" placeholder="Aviso para todos no chat…" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit"></textarea><div class="btns" style="margin-top:8px"><button class="btn" id="c-e">Enviar como Organização</button></div></div>'
+  +'<div class="sec"><h2>Mensagens</h2><small>apague ou bloqueie quem abusar</small></div><div class="card"><div class="lst">'+(ms.length?ms.map(function(m){return '<div class="row"><div class="t"><b>'+esc(m.apelido)+(m.oficial?' · organização':'')+'</b><small>'+esc(m.hora)+'</small><div style="margin-top:4px;word-break:break-word">'+esc(m.texto)+'</div></div><div class="btns" style="flex:none"><button class="btn gh" data-a="'+m.id+'">Apagar</button>'+(m.oficial?'':'<button class="btn gh" data-b="'+m.id+'">Bloquear</button>')+'</div></div>'}).join(''):'<p class="empty">Nenhuma mensagem ainda.</p>')+'</div></div>';
+  var rec=function(){LOADED.chat=false;pChat()};
+  $('c-r').onclick=rec;
+  $('c-p').onclick=function(){post('chatConfigurar',{pausado:!d.pausado}).then(function(r){if(!r.ok)return toast(r.erro||'Erro',1);toast(d.pausado?'Chat reaberto':'Chat pausado');pChat()})};
+  $('c-e').onclick=function(){var t=$('c-t').value.trim();if(!t)return;post('chatEnviar',{apelido:'Organização',texto:t,deviceId:'org-'+(AUTH&&AUTH.usuario)}).then(function(r){if(!r.ok)return toast(r.erro||'Erro',1);toast('Mensagem enviada');pChat()})};
+  el.querySelectorAll('[data-a]').forEach(function(b){b.onclick=function(){b.disabled=true;post('chatApagar',{id:b.dataset.a}).then(function(r){if(!r.ok){b.disabled=false;return toast(r.erro||'Erro',1)}toast('Mensagem apagada');pChat()})}});
+  el.querySelectorAll('[data-b]').forEach(function(b){b.onclick=function(){if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar?';setTimeout(function(){b.dataset.ok='';b.textContent='Bloquear'},4000);return}b.disabled=true;post('chatBloquear',{id:b.dataset.b}).then(function(r){if(!r.ok){b.disabled=false;return toast(r.erro||'Erro',1)}toast('Pessoa bloqueada ('+(r.apagadas||0)+' mensagens apagadas)');pChat()})}});
  });
 }
 function pRelatorios(){
