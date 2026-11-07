@@ -47,8 +47,8 @@ $('lo').addEventListener('click',function(){ss('sca_auth',null);ls('sca_auth',nu
 (function(){var s=ss('sca_auth')||ls('sca_auth');if(s){try{var a=JSON.parse(s);entrar(a.usuario,a.senha,!!ls('sca_auth'),true)}catch(e){}}})();
 
 /* ---------- navegação ---------- */
-var ICONS={chat:'<path d="M4 5h16v11H9l-5 4z"/>',zap:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/>',relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
-var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['zap','WhatsApp'],['chat','Chat'],['mais','Mais']];
+var ICONS={galeria:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',zap:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/>',relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
+var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['zap','WhatsApp'],['chat','Chat'],['galeria','Galeria'],['mais','Mais']];
 var MAIN=['painel','elencos','noticias','zap'];
 var SVG=function(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+k+'</svg>'};
 var IMENU='<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>';
@@ -66,7 +66,7 @@ $('nav').addEventListener('click',function(e){var b=e.target.closest('button');i
 $('rf').addEventListener('click',function(){LOADED[TAB]=false;ir(TAB,true)});
 function ir(t,force){TAB=t;document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.id==='t-'+t)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});var nm2=$('nmais');if(nm2)nm2.classList.toggle('on',MAIN.indexOf(t)<0);
  var nm=TABS.filter(function(x){return x[0]===t})[0][1];$('tt').firstChild.nodeValue=nm;ss('sca_tab',t);window.scrollTo(0,0);
- if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,zap:pZap,chat:pChat,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
+ if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,zap:pZap,chat:pChat,galeria:pGaleria,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
 function iniciar(){var h=location.hash==='#zap';ir(h?'zap':(ss('sca_tab')||'painel'));zLiga()}
 
 /* ---------- PAINEL ---------- */
@@ -351,6 +351,33 @@ function pChat(){
   $('c-e').onclick=function(){var t=$('c-t').value.trim();if(!t)return;post('chatEnviar',{apelido:'Organização',texto:t,deviceId:'org-'+(AUTH&&AUTH.usuario)}).then(function(r){if(!r.ok)return toast(r.erro||'Erro',1);toast('Mensagem enviada');pChat()})};
   el.querySelectorAll('[data-a]').forEach(function(b){b.onclick=function(){b.disabled=true;post('chatApagar',{id:b.dataset.a}).then(function(r){if(!r.ok){b.disabled=false;return toast(r.erro||'Erro',1)}toast('Mensagem apagada');pChat()})}});
   el.querySelectorAll('[data-b]').forEach(function(b){b.onclick=function(){if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar?';setTimeout(function(){b.dataset.ok='';b.textContent='Bloquear'},4000);return}b.disabled=true;post('chatBloquear',{id:b.dataset.b}).then(function(r){if(!r.ok){b.disabled=false;return toast(r.erro||'Erro',1)}toast('Pessoa bloqueada ('+(r.apagadas||0)+' mensagens apagadas)');pChat()})}});
+ });
+}
+function galLer(file){return new Promise(function(ok,er){var u=URL.createObjectURL(file),im=new Image();im.onload=function(){URL.revokeObjectURL(u);ok(im)};im.onerror=function(){URL.revokeObjectURL(u);er(new Error('Não consegui ler a foto'))};im.src=u})}
+function galReduz(im,max,q){var w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,max/Math.max(w,h)),cw=Math.max(1,Math.round(w*k)),ch=Math.max(1,Math.round(h*k)),c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(im,0,0,cw,ch);return {data:c.toDataURL('image/jpeg',q),w:cw,h:ch}}
+function pGaleria(){
+ var el=$('t-galeria');el.innerHTML=skel();
+ return get('galeriaLista').then(function(d){
+  var fs=d.fotos||[];
+  el.innerHTML='<div class="sec"><h2>Galeria</h2><small>fotos do celular para o site e o app</small></div>'
+  +'<div class="card"><p class="mut" style="margin-bottom:10px">Escolha fotos da galeria do seu iPhone. Elas são reduzidas automaticamente e aparecem na Galeria do site e do app em alguns segundos.</p>'
+  +'<input type="file" id="g-f" accept="image/*" multiple hidden><div class="btns"><button class="btn" id="g-b">Escolher fotos</button></div><p class="mut" id="g-s" style="margin-top:10px"></p></div>'
+  +'<div class="sec"><h2>Enviadas pelo app</h2><small>'+fs.length+' foto(s)</small></div><div class="card">'+(fs.length?'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+fs.map(function(f){return '<div style="position:relative"><img src="'+esc(f.t)+'" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#0003"><button type="button" class="btn gh" data-r="'+esc(f.id)+'" style="width:100%;padding:6px 0;font-size:13px;margin-top:4px">Remover</button></div>'}).join('')+'</div>':'<p class="empty">Nenhuma foto enviada por aqui ainda.</p>')+'</div>';
+  var fi=$('g-f'),st=$('g-s');
+  $('g-b').onclick=function(){fi.click()};
+  fi.onchange=function(){
+   var files=[].slice.call(fi.files||[]);if(!files.length)return;var b=$('g-b');b.disabled=true;var ok=0,bad=0;
+   (function prox(i){
+    if(i>=files.length){b.disabled=false;fi.value='';st.textContent=ok+' foto(s) enviada(s)'+(bad?' · '+bad+' com erro':'')+'.';toast(ok+' foto(s) na galeria',bad?1:0);if(ok)pGaleria();return}
+    st.textContent='Enviando '+(i+1)+' de '+files.length+'…';
+    galLer(files[i]).then(function(im){
+     var f=galReduz(im,1800,.82);if(f.data.length>2300000)f=galReduz(im,1600,.68);
+     var t=galReduz(im,720,.78);
+     return post('galeriaEnviar',{full:f.data,thumb:t.data,w:f.w,h:f.h,tw:t.w,th:t.h})
+    }).then(function(r){if(r&&r.ok)ok++;else{bad++;if(r&&r.erro)toast(r.erro,1)}}).catch(function(e){bad++;toast(e.message||'Erro na foto',1)}).then(function(){prox(i+1)})
+   })(0)
+  };
+  el.querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar?';setTimeout(function(){b.dataset.ok='';b.textContent='Remover'},4000);return}b.disabled=true;post('galeriaRemover',{id:b.dataset.r}).then(function(r){if(!r.ok){b.disabled=false;return toast(r.erro||'Erro',1)}toast('Foto removida');pGaleria()})}});
  });
 }
 function pRelatorios(){
