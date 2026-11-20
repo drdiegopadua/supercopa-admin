@@ -47,8 +47,8 @@ $('lo').addEventListener('click',function(){ss('sca_auth',null);ls('sca_auth',nu
 (function(){var s=ss('sca_auth')||ls('sca_auth');if(s){try{var a=JSON.parse(s);entrar(a.usuario,a.senha,!!ls('sca_auth'),true)}catch(e){}}})();
 
 /* ---------- navegação ---------- */
-var ICONS={galeria:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',zap:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/>',relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
-var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['zap','WhatsApp'],['chat','Chat'],['galeria','Galeria'],['mais','Mais']];
+var ICONS={telao:'<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8M12 17v4"/>',galeria:'<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.6"/><path d="M21 16l-5-5-8 8"/>',chat:'<path d="M4 5h16v11H9l-5 4z"/>',zap:'<path d="M4 20l1.3-4.2A8 8 0 1 1 8.4 18.8z"/><path d="M9 9.5c0 3 2.5 5.5 5.5 5.5"/>',relatorios:'<path d="M6 3h9l4 4v14H6zM14 3v5h5M9 13h7M9 17h5"/>',painel:'<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',elencos:'<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.5 2.7-6 6-6s6 2.5 6 6M16 5.5a3 3 0 010 5.6M18 14.5c2 .6 3.5 2.6 3.5 5.5"/>',noticias:'<path d="M5 4h11v16H5zM16 8h3v12H8M8 8h5M8 12h5"/>',push:'<path d="M6 16V11a6 6 0 0112 0v5l2 2H4zM10 20a2 2 0 004 0"/>',saude:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',premios:'<path d="M8 4h8v5a4 4 0 01-8 0zM8 6H4v1a4 4 0 004 4M16 6h4v1a4 4 0 01-4 4M12 13v4M8 20h8"/>',mais:'<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'};
+var TABS=[['painel','Painel'],['elencos','Elencos'],['noticias','Notícias'],['push','Push'],['saude','Saúde'],['premios','Prêmios'],['relatorios','Relatórios'],['zap','WhatsApp'],['chat','Chat'],['telao','Telão'],['galeria','Galeria'],['mais','Mais']];
 var MAIN=['painel','elencos','noticias','zap'];
 var SVG=function(k){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">'+k+'</svg>'};
 var IMENU='<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>';
@@ -66,7 +66,7 @@ $('nav').addEventListener('click',function(e){var b=e.target.closest('button');i
 $('rf').addEventListener('click',function(){LOADED[TAB]=false;ir(TAB,true)});
 function ir(t,force){TAB=t;document.querySelectorAll('.tab').forEach(function(x){x.classList.toggle('on',x.id==='t-'+t)});document.querySelectorAll('#nav button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});var nm2=$('nmais');if(nm2)nm2.classList.toggle('on',MAIN.indexOf(t)<0);
  var nm=TABS.filter(function(x){return x[0]===t})[0][1];$('tt').firstChild.nodeValue=nm;ss('sca_tab',t);window.scrollTo(0,0);
- if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,zap:pZap,chat:pChat,galeria:pGaleria,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
+ if(!LOADED[t]||force){LOADED[t]=true;var rb=$('rf');rb.classList.add('spin');Promise.resolve(({painel:pPainel,elencos:pElencos,noticias:pNoticias,push:pPush,saude:pSaude,premios:pPremios,relatorios:pRelatorios,zap:pZap,chat:pChat,telao:pTelao,galeria:pGaleria,mais:pMais})[t]()).catch(function(e){$('t-'+t).innerHTML='<div class="al er"><div><b>Erro</b>'+esc(e.message||e)+'</div></div>'}).then(function(){rb.classList.remove('spin');$('ts').textContent='Atualizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})})}}
 function iniciar(){var h=location.hash==='#zap';ir(h?'zap':(ss('sca_tab')||'painel'));zLiga()}
 
 /* ---------- PAINEL ---------- */
@@ -338,6 +338,19 @@ function pZap(){
   if(ZAP.pend&&!ta.value)set(ZAP.pend.t);
  });
 }
+function pTelao(){
+ var el=$('t-telao');el.innerHTML=skel();var TL='https://drdiegopadua.github.io/supercopapainelcontrole/telao-led.html';
+ return get('telaoAviso').then(function(a){
+  el.innerHTML='<div class="sec"><h2>Telão de LED</h2><small>controle do que aparece no ginásio</small></div>'
+  +'<div class="card"><h3>Aviso da organização</h3><p class="mut" style="margin:6px 0 10px">Aparece em uma faixa vermelha por cima de tudo no telão, em até 8 segundos.</p><div class="f"><span>Texto do aviso</span><textarea id="t-t" rows="3" maxlength="220" placeholder="Ex.: Jogo da quadra alternativa adiado em 15 minutos" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit"></textarea></div>'
+  +'<div class="f"><span>Sai sozinho depois de</span><select id="t-m"><option value="0">Fica até eu tirar</option><option value="2">2 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="30">30 minutos</option></select></div>'
+  +'<div class="btns"><button class="btn" id="t-on">Mostrar no telão</button><button class="btn gh" id="t-off">Tirar do telão</button></div><p class="mut" id="t-s" style="margin-top:10px"></p></div>'
+  +'<div class="card"><h3>O que passa sozinho</h3><p class="mut" style="margin-top:6px">Classificação, jogos do dia, mata-mata (quando as quartas forem sorteadas), destaques, quiz, patrocinadores e fotos. Quando um jogo termina, o placar final aparece em cartão grande por 20 segundos. As fotos você escolhe em Mais, Galeria.</p><div class="btns" style="margin-top:10px"><a class="btn gh" href="'+TL+'" target="_blank" rel="noopener">Abrir o telão</a></div></div>';
+  $('t-t').value=a.texto||'';
+  var st=function(x){$('t-s').textContent=x.ativo?'No ar agora: “'+x.texto+'”':'Nenhum aviso no ar.'};st(a);
+  $('t-on').onclick=function(){var t=$('t-t').value.trim();if(!t)return toast('Escreva o aviso',1);var b=$('t-on');b.disabled=true;post('telaoAvisoSalvar',{texto:t,ativo:true,minutos:+$('t-m').value}).then(function(r){b.disabled=false;if(!r.ok)return toast(r.erro||'Erro',1);toast('Aviso no ar');st(r)})};
+  $('t-off').onclick=function(){post('telaoAvisoSalvar',{texto:$('t-t').value.trim(),ativo:false}).then(function(r){if(!r.ok)return toast(r.erro||'Erro',1);toast('Aviso retirado');st(r)})};
+ })}
 function pChat(){
  var el=$('t-chat');el.innerHTML=skel();
  return get('chat').then(function(d){
