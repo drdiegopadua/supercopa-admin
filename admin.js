@@ -355,6 +355,21 @@ function pChat(){
 }
 function galLer(file){return new Promise(function(ok,er){var u=URL.createObjectURL(file),im=new Image();im.onload=function(){URL.revokeObjectURL(u);ok(im)};im.onerror=function(){URL.revokeObjectURL(u);er(new Error('Não consegui ler a foto'))};im.src=u})}
 function galReduz(im,max,q){var w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,max/Math.max(w,h)),cw=Math.max(1,Math.round(w*k)),ch=Math.max(1,Math.round(h*k)),c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(im,0,0,cw,ch);return {data:c.toDataURL('image/jpeg',q),w:cw,h:ch}}
+function telaoSecao(el,up){
+ var SITE='https://www.supercopaafc.com.br/';
+ return Promise.all([get('telaoFotos'),fetch(SITE+'galeria/galeria.json').then(function(r){return r.json()}).catch(function(){return {fotos:[]}})]).then(function(r){
+  var sel=r[0]&&r[0].ids,all=[].concat(up.map(function(f){return {id:String(f.id),t:f.t}}),((r[1]&&r[1].fotos)||[]).map(function(f){return {id:'s-'+f.id,t:SITE+f.t}}));
+  var on={};(sel||all.map(function(f){return f.id})).forEach(function(i){on[i]=1});
+  var box=document.createElement('div');box.innerHTML='<div class="sec"><h2>Fotos no telão</h2><small id="tl-n"></small></div><div class="card"><p class="mut" style="margin-bottom:10px">Toque nas fotos que devem passar no telão de LED. As marcadas em azul aparecem.</p><div class="btns"><button class="btn gh" id="tl-t">Marcar todas</button><button class="btn gh" id="tl-x">Limpar</button><button class="btn" id="tl-s">Salvar seleção</button></div><div id="tl-g" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;max-height:60vh;overflow:auto"></div></div>';
+  el.appendChild(box);
+  function draw(){var n=Object.keys(on).filter(function(k){return on[k]}).length;$('tl-n').textContent=n+' de '+all.length+' no telão';
+   $('tl-g').innerHTML=all.map(function(f){return '<button type="button" data-i="'+esc(f.id)+'" style="padding:0;border:3px solid '+(on[f.id]?'#1b52e0':'transparent')+';background:none;position:relative"><img src="'+esc(f.t)+'" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;opacity:'+(on[f.id]?1:.35)+'">'+(on[f.id]?'<span style="position:absolute;right:3px;top:3px;background:#1b52e0;color:#fff;width:20px;height:20px;border-radius:50%;font:800 13px/20px sans-serif;text-align:center">✓</span>':'')+'</button>'}).join('')}
+  draw();
+  $('tl-g').onclick=function(e){var b=e.target.closest('button[data-i]');if(!b)return;on[b.dataset.i]=!on[b.dataset.i];draw()};
+  $('tl-t').onclick=function(){all.forEach(function(f){on[f.id]=1});draw()};
+  $('tl-x').onclick=function(){on={};draw()};
+  $('tl-s').onclick=function(){var b=$('tl-s');b.disabled=true;var ids=all.map(function(f){return f.id}).filter(function(i){return on[i]});post('telaoFotosSalvar',{ids:ids.length===all.length?null:ids}).then(function(x){b.disabled=false;if(!x.ok)return toast(x.erro||'Erro ao salvar',1);toast(ids.length+' foto(s) no telão')})};
+ })}
 function pGaleria(){
  var el=$('t-galeria');el.innerHTML=skel();
  return get('galeriaLista').then(function(d){
@@ -363,6 +378,7 @@ function pGaleria(){
   +'<div class="card"><p class="mut" style="margin-bottom:10px">Escolha fotos da galeria do seu iPhone. Elas são reduzidas automaticamente e aparecem na Galeria do site e do app em alguns segundos.</p>'
   +'<input type="file" id="g-f" accept="image/*" multiple hidden><div class="btns"><button class="btn" id="g-b">Escolher fotos</button></div><p class="mut" id="g-s" style="margin-top:10px"></p></div>'
   +'<div class="sec"><h2>Enviadas pelo app</h2><small>'+fs.length+' foto(s)</small></div><div class="card">'+(fs.length?'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+fs.map(function(f){return '<div style="position:relative"><img src="'+esc(f.t)+'" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#0003"><button type="button" class="btn gh" data-r="'+esc(f.id)+'" style="width:100%;padding:6px 0;font-size:13px;margin-top:4px">Remover</button></div>'}).join('')+'</div>':'<p class="empty">Nenhuma foto enviada por aqui ainda.</p>')+'</div>';
+  telaoSecao(el,fs);
   var fi=$('g-f'),st=$('g-s');
   $('g-b').onclick=function(){fi.click()};
   fi.onchange=function(){
