@@ -248,16 +248,19 @@ function destaqueHtml(lista,times){
  setTimeout(bindDestaque,0);
  return '<div class="sec"><h2>Destaque da partida</h2><small>aparece no site e no app</small></div><div class="card"><div class="fr" style="grid-template-columns:1fr 1fr"><div class="f"><span>Modalidade</span><select id="d-m"><option>Vôlei</option><option>Basquete</option></select></div><div class="f"><span>Jogo</span><input id="d-j" maxlength="60" placeholder="Jogo 5 · Semifinal"></div></div>'
  +'<div class="f"><span>Time</span><select id="d-e"></select></div><div class="f"><span>Nome do atleta</span><input id="d-n" maxlength="80" autocapitalize="words"></div><div class="f"><span>Observação (opcional)</span><input id="d-o" maxlength="140" placeholder="Ex.: 22 pontos e 3 bloqueios"></div>'
- +'<div class="f"><span>Foto</span><input type="file" id="d-f" accept="image/*"></div><div id="d-p" style="margin-bottom:12px"></div><button class="btn w" id="d-s">Salvar destaque</button>'
+ +'<div class="f"><span>Foto</span><input type="file" id="d-f" accept="image/*"></div><div id="d-p" style="margin-bottom:12px"></div><label class="chk" style="margin:0 0 12px"><input type="checkbox" id="d-g" checked> Publicar também na galeria</label><button class="btn w" id="d-s">Salvar destaque</button>'
  +'<div class="lst" style="margin-top:16px">'+(lista.length?lista.map(function(x){return '<div class="row">'+(x.foto?'<img src="'+esc(x.foto)+'" alt="" style="width:52px;height:52px;object-fit:cover;flex:none">':'<div style="width:52px;height:52px;background:var(--soft);flex:none"></div>')+'<div class="t"><b>'+esc(x.nome)+'</b><small>'+esc(x.equipe)+' · '+esc(x.modalidade)+' · '+esc(x.jogo||'')+'</small></div><button class="btn sm er" data-dd="'+x.id+'">Apagar</button></div>'}).join(''):'<p class="empty">Nenhum destaque cadastrado ainda.</p>')+'</div></div>'
  +'<script type="application/json" id="d-times">'+JSON.stringify({v:times,b:BASQ_T}).replace(/</g,'\\u003c')+'</script>';
 }
 function bindDestaque(){
  var el=$('d-m');if(!el)return;var T={v:[],b:BASQ_T};try{T=JSON.parse($('d-times').textContent)}catch(e){}
  var fill=function(){var l=$('d-m').value==='Basquete'?T.b:T.v;$('d-e').innerHTML=l.map(function(x){return '<option>'+esc(x)+'</option>'}).join('')};fill();$('d-m').onchange=fill;
- $('d-f').onchange=function(){var f=this.files[0];DFOTO='';$('d-p').innerHTML='';if(!f)return;reduzirFoto(f,720).then(function(u){DFOTO=u;$('d-p').innerHTML='<img src="'+u+'" alt="" style="width:120px;height:120px;object-fit:cover">'}).catch(function(e){toast(e.message,1)})};
+ $('d-f').onchange=function(){var inp=this,f=inp.files[0];DFOTO='';$('d-p').innerHTML='';if(!f)return;recortar(f,{asp:1,saida:800,circulo:true,titulo:'Enquadre a foto do atleta (círculo do telão)'}).then(function(u){DFOTO=u;$('d-p').innerHTML='<img src="'+u+'" alt="" style="width:120px;height:120px;object-fit:cover;border-radius:50%">'}).catch(function(e){inp.value='';if(e&&e.message!=='cancelado')toast(e.message,1)})};
  $('d-s').onclick=function(){var n=$('d-n').value.trim();if(!n)return toast('Informe o nome do atleta',1);if(!DFOTO)return toast('Escolha a foto do atleta',1);var b=$('d-s');b.disabled=true;b.textContent='Salvando...';
-  post('salvarDestaquePartida',{modalidade:$('d-m').value,jogo:$('d-j').value.trim(),equipe:$('d-e').value,nome:n,observacao:$('d-o').value.trim(),fotoBase64:DFOTO}).then(function(r){b.disabled=false;b.textContent='Salvar destaque';if(!r.ok)return toast(r.erro||'Erro ao salvar',1);toast('Destaque salvo');LOADED.premios=false;ir('premios',true)}).catch(function(){b.disabled=false;b.textContent='Salvar destaque';toast('Falha de conexão',1)})};
+  post('salvarDestaquePartida',{modalidade:$('d-m').value,jogo:$('d-j').value.trim(),equipe:$('d-e').value,nome:n,observacao:$('d-o').value.trim(),fotoBase64:DFOTO}).then(function(r){b.disabled=false;b.textContent='Salvar destaque';if(!r.ok)return toast(r.erro||'Erro ao salvar',1);
+   var fim=function(){toast('Destaque salvo');LOADED.premios=false;ir('premios',true)};
+   if(!$('d-g')||!$('d-g').checked)return fim();
+   dataImg(DFOTO).then(function(im){var t=galReduz(im,480,.78);return post('galeriaEnviar',{full:DFOTO,thumb:t.data,w:im.naturalWidth,h:im.naturalHeight,tw:t.w,th:t.h,legenda:'Destaque: '+n})}).then(function(g){if(g&&g.ok)toast('Destaque salvo e publicado na galeria');else toast('Destaque salvo, mas a galeria falhou: '+((g&&g.erro)||''),1);LOADED.premios=false;ir('premios',true)}).catch(fim)}).catch(function(){b.disabled=false;b.textContent='Salvar destaque';toast('Falha de conexão',1)})};
  document.querySelectorAll('[data-dd]').forEach(function(b){b.onclick=function(){if(b.dataset.c!=='1'){b.dataset.c='1';b.textContent='Confirmar?';return}post('excluirDestaquePartida',{id:b.dataset.dd}).then(function(r){if(r.ok){toast('Destaque apagado');LOADED.premios=false;ir('premios',true)}else toast(r.erro,1)})}});
 }
 function pPremios(){
@@ -355,6 +358,29 @@ function pChat(){
 }
 function galLer(file){return new Promise(function(ok,er){var u=URL.createObjectURL(file),im=new Image();im.onload=function(){URL.revokeObjectURL(u);ok(im)};im.onerror=function(){URL.revokeObjectURL(u);er(new Error('Não consegui ler a foto'))};im.src=u})}
 function galReduz(im,max,q){var w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,max/Math.max(w,h)),cw=Math.max(1,Math.round(w*k)),ch=Math.max(1,Math.round(h*k)),c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(im,0,0,cw,ch);return {data:c.toDataURL('image/jpeg',q),w:cw,h:ch}}
+/* ---------- recorte de imagem no tamanho do quadro do telão ---------- */
+function dataImg(u){return new Promise(function(ok,er){var im=new Image();im.onload=function(){ok(im)};im.onerror=function(){er(new Error('Imagem inválida'))};im.src=u})}
+function recortar(file,o){
+ return new Promise(function(ok,no){galLer(file).then(function(im){
+  var m=document.createElement('div');m.className='cropm';
+  m.innerHTML='<div class="cp"><b>'+esc(o.titulo||'Enquadrar foto')+'</b><small>Arraste a foto para posicionar e use o controle para aproximar. A área clara é o que aparece.</small><div class="cf" id="cf"><canvas id="cc"></canvas><div class="cg'+(o.circulo?' ci':'')+'"></div></div><input type="range" id="cz" min="100" max="400" value="100"><div class="btns"><button type="button" class="btn gh" id="cn">Cancelar</button><button type="button" class="btn" id="cu">Usar recorte</button></div></div>';
+  document.body.appendChild(m);
+  var W=Math.min(innerWidth-40,540),H=Math.round(W/o.asp);if(H>innerHeight*.5){H=Math.round(innerHeight*.5);W=Math.round(H*o.asp)}
+  var cf=m.querySelector('#cf'),cv=m.querySelector('#cc'),ctx=cv.getContext('2d');cv.width=W;cv.height=H;cf.style.width=W+'px';cf.style.height=H+'px';
+  var base=Math.max(W/im.naturalWidth,H/im.naturalHeight),z=1,ox=0,oy=0;
+  function dim(){return [im.naturalWidth*base*z,im.naturalHeight*base*z]}
+  function clamp(){var d=dim();ox=Math.max(-(d[0]-W)/2,Math.min((d[0]-W)/2,ox));oy=Math.max(-(d[1]-H)/2,Math.min((d[1]-H)/2,oy))}
+  function pinta(c,w,h,k){var d=dim();c.fillStyle='#000';c.fillRect(0,0,w,h);c.drawImage(im,((W-d[0])/2+ox)*k,((H-d[1])/2+oy)*k,d[0]*k,d[1]*k)}
+  function draw(){clamp();pinta(ctx,W,H,1)}draw();
+  var dr=null;cf.onpointerdown=function(e){dr={x:e.clientX,y:e.clientY,ox:ox,oy:oy};cf.setPointerCapture(e.pointerId)};
+  cf.onpointermove=function(e){if(!dr)return;ox=dr.ox+(e.clientX-dr.x);oy=dr.oy+(e.clientY-dr.y);draw()};
+  cf.onpointerup=cf.onpointercancel=function(){dr=null};
+  cf.onwheel=function(e){e.preventDefault();var r=m.querySelector('#cz');r.value=Math.max(100,Math.min(400,+r.value-e.deltaY*.2));r.oninput()};
+  m.querySelector('#cz').oninput=function(){z=this.value/100;draw()};
+  function fecha(){m.remove()}
+  m.querySelector('#cn').onclick=function(){fecha();no(new Error('cancelado'))};
+  m.querySelector('#cu').onclick=function(){var S=o.saida||1200,oc=document.createElement('canvas');oc.width=S;oc.height=Math.round(S/o.asp);pinta(oc.getContext('2d'),oc.width,oc.height,S/W);var u=oc.toDataURL('image/jpeg',.88);fecha();ok(u)};
+ }).catch(no)})}
 function telaoSecao(el,up){
  var SITE='https://www.supercopaafc.com.br/';
  return Promise.all([get('telaoFotos'),fetch(SITE+'galeria/galeria.json').then(function(r){return r.json()}).catch(function(){return {fotos:[]}})]).then(function(r){
@@ -376,7 +402,7 @@ function pGaleria(){
   var fs=d.fotos||[];
   el.innerHTML='<div class="sec"><h2>Galeria</h2><small>fotos do celular para o site e o app</small></div>'
   +'<div class="card"><p class="mut" style="margin-bottom:10px">Escolha fotos da galeria do seu iPhone. Elas são reduzidas automaticamente e aparecem na Galeria do site e do app em alguns segundos.</p>'
-  +'<input type="file" id="g-f" accept="image/*" multiple hidden><div class="btns"><button class="btn" id="g-b">Escolher fotos</button></div><p class="mut" id="g-s" style="margin-top:10px"></p></div>'
+  +'<div class="f"><span>Enquadramento</span><select id="g-q"><option value="0">Original (sem recorte)</option><option value="2.1">Recortar no quadro do telão (2,1 : 1)</option><option value="1">Recortar quadrado (1 : 1)</option></select></div><input type="file" id="g-f" accept="image/*" multiple hidden><div class="btns"><button class="btn" id="g-b">Escolher fotos</button></div><p class="mut" id="g-s" style="margin-top:10px"></p></div>'
   +'<div class="sec"><h2>Enviadas pelo app</h2><small>'+fs.length+' foto(s)</small></div><div class="card">'+(fs.length?'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+fs.map(function(f){return '<div style="position:relative"><img src="'+esc(f.t)+'" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#0003"><button type="button" class="btn gh" data-r="'+esc(f.id)+'" style="width:100%;padding:6px 0;font-size:13px;margin-top:4px">Remover</button></div>'}).join('')+'</div>':'<p class="empty">Nenhuma foto enviada por aqui ainda.</p>')+'</div>';
   telaoSecao(el,fs);
   var fi=$('g-f'),st=$('g-s');
@@ -386,11 +412,11 @@ function pGaleria(){
    (function prox(i){
     if(i>=files.length){b.disabled=false;fi.value='';st.textContent=ok+' foto(s) enviada(s)'+(bad?' · '+bad+' com erro':'')+'.';toast(ok+' foto(s) na galeria',bad?1:0);if(ok)pGaleria();return}
     st.textContent='Enviando '+(i+1)+' de '+files.length+'…';
-    galLer(files[i]).then(function(im){
+    var modo=+$('g-q').value;(modo?recortar(files[i],{asp:modo,saida:modo===1?1200:1800,titulo:'Foto '+(i+1)+' de '+files.length+' · '+(modo===1?'quadrado':'quadro do telão')}).then(dataImg):galLer(files[i])).then(function(im){
      var f=galReduz(im,1800,.82);if(f.data.length>2300000)f=galReduz(im,1600,.68);
      var t=galReduz(im,720,.78);
      return post('galeriaEnviar',{full:f.data,thumb:t.data,w:f.w,h:f.h,tw:t.w,th:t.h})
-    }).then(function(r){if(r&&r.ok)ok++;else{bad++;if(r&&r.erro)toast(r.erro,1)}}).catch(function(e){bad++;toast(e.message||'Erro na foto',1)}).then(function(){prox(i+1)})
+    }).then(function(r){if(r&&r.ok)ok++;else{bad++;if(r&&r.erro)toast(r.erro,1)}}).catch(function(e){if(e&&e.message==='cancelado')return;bad++;toast((e&&e.message)||'Erro na foto',1)}).then(function(){prox(i+1)})
    })(0)
   };
   el.querySelectorAll('[data-r]').forEach(function(b){b.onclick=function(){if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar?';setTimeout(function(){b.dataset.ok='';b.textContent='Remover'},4000);return}b.disabled=true;post('galeriaRemover',{id:b.dataset.r}).then(function(r){if(!r.ok){b.disabled=false;return toast(r.erro||'Erro',1)}toast('Foto removida');pGaleria()})}});
