@@ -125,7 +125,7 @@ function pElencos(){
  return Promise.all([safe(get('statusCadastroEquipes')),safe(get('atletasTodos')),safe(get('timesPublicos'))]).then(function(r){
   var st=(r[0]&&r[0].equipes)||[],at=(r[1]&&r[1].atletas)||[],tm=(r[2]&&r[2].times)||[];
   var esc_={};tm.forEach(function(x){esc_[String(x.nome).toLowerCase()]=x.escudo});
-  esc_['ct das montanhas']=SITE+'novo/escudos/ct-das-montanhas.png';esc_['união vôlei']=SITE+'novo/escudos/uniao-volei.png';
+  var _E=SITE+'novo/escudos/';esc_['alpha vôlei']=_E+'alpha-volei.png';esc_['ct das montanhas']=_E+'ct-das-montanhas.png';esc_['ctv aravôlei']=_E+'ctv-aravolei.png';esc_['ctva voleibol']=_E+'ctva-voleibol.png';esc_['equipe uvi']=_E+'equipe-uvi.png';esc_['es vôlei']=_E+'es-volei.png';esc_['ms vôlei']=_E+'ms-volei.png';esc_['rpb volei']=_E+'rpb-volei.png';esc_['super vôlei']=_E+'super-volei.png';esc_['supra vôlei']=_E+'supra-volei.png';esc_['tiger volley']=_E+'tiger-volley.png';esc_['união vôlei']=_E+'uniao-volei.png';
   var rows=st.map(function(e){
    var l=at.filter(function(a){return String(a.equipe).toLowerCase()===String(e.equipe).toLowerCase()});
    var atl=l.filter(function(a){return !ehCom(a.tipo)}),com=l.filter(function(a){return ehCom(a.tipo)});
