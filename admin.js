@@ -382,6 +382,32 @@ function pTelao(){
    if(bc)bc.onmessage=function(e){var d=e.data||{};if(d.type==='estado'&&d.fase){var lb=$('tc-fase-label');if(lb)lb.textContent=FNAMES[d.fase]||d.fase;document.querySelectorAll('#tc-fases button').forEach(function(b){var on=b.dataset.f===d.fase;b.className='btn'+(on?'':' gh');b.style.background=on?'var(--b1)':'';b.style.color=on?'#fff':'';});}};
   })();
   $('pm-btn').onclick=function(){var base='https://drdiegopadua.github.io/supercopapainelcontrole/overlay-prematch.html',c=$('pm-casa').value.trim(),v=$('pm-vis').value.trim();if(!c||!v)return toast('Preencha os dois times',1);var q=new URLSearchParams();q.set('casa',c);q.set('visitante',v);var d=$('pm-data').value.trim(),h=$('pm-hora').value.trim(),qd=$('pm-quadra').value.trim(),g=$('pm-grupo').value;if(d)q.set('data',d);if(h)q.set('horario',h);if(qd)q.set('quadra',qd);if(g)q.set('grupo',g);window.open(base+'?'+q.toString(),'_blank')};
+  // fotos direto no telão com recorte
+  var ftDiv=document.createElement('div');
+  ftDiv.innerHTML='<div class="sec"><h2>Fotos no telão</h2><small>você define quais fotos aparecem na tela de galeria</small></div>'
+   +'<div class="card"><p class="mut" style="margin-bottom:10px">Adicione fotos do seu celular. Cada foto é enquadrada no formato do telão (2,1:1) antes de enviar — arraste para posicionar e use o controle deslizante para aproximar.</p>'
+   +'<input type="file" id="tf-f" accept="image/*" multiple hidden>'
+   +'<div class="btns"><button class="btn" id="tf-b">Adicionar fotos ao telão</button></div>'
+   +'<p class="mut" id="tf-s" style="margin-top:10px"></p></div>';
+  el.appendChild(ftDiv);
+  var tfFi=document.getElementById('tf-f'),tfSt=document.getElementById('tf-s');
+  document.getElementById('tf-b').onclick=function(){tfFi.click()};
+  tfFi.onchange=function(){
+   var files=[].slice.call(tfFi.files||[]);if(!files.length)return;
+   var b=document.getElementById('tf-b');b.disabled=true;var ok=0,bad=0;
+   (function prox(i){
+    if(i>=files.length){b.disabled=false;tfFi.value='';tfSt.textContent=ok+' foto(s) adicionada(s) ao telão'+(bad?' · '+bad+' com erro':'')+'.';toast(ok+' foto(s) no telão',bad?1:0);if(ok)pTelao();return}
+    tfSt.textContent='Enquadrando '+(i+1)+' de '+files.length+'…';
+    recortar(files[i],{asp:2.1,saida:1800,titulo:'Foto '+(i+1)+' de '+files.length}).then(dataImg).then(function(im){
+     var f=galReduz(im,1800,.82);if(f.data.length>2300000)f=galReduz(im,1600,.68);
+     var t=galReduz(im,720,.78);
+     return post('galeriaEnviar',{full:f.data,thumb:t.data,w:f.w,h:f.h,tw:t.w,th:t.h,telao:true});
+    }).then(function(r){
+     if(r&&r.ok){ok++;if(r.id){return get('telaoFotos').then(function(tf){var ids=((tf&&tf.ids)||[]).map(String);if(ids.indexOf(String(r.id))<0)ids.push(String(r.id));return post('telaoFotosSalvar',{ids:ids})})}}else{bad++;if(r&&r.erro)toast(r.erro,1)}
+    }).catch(function(e){if(e&&e.message==='cancelado')return;bad++;toast((e&&e.message)||'Erro na foto',1)}).then(function(){prox(i+1)});
+   })(0);
+  };
+  get('galeriaLista').then(function(d){telaoSecao(el,d.fotos||[])});
  })}
 function pChat(){
  var el=$('t-chat');el.innerHTML=skel();
