@@ -345,6 +345,7 @@ function pTelao(){
   +'<div class="card"><h3>Aviso da organização</h3><p class="mut" style="margin:6px 0 10px">Aparece em uma faixa vermelha por cima de tudo no telão, em até 8 segundos.</p><div class="f"><span>Texto do aviso</span><textarea id="t-t" rows="3" maxlength="220" placeholder="Ex.: Jogo da quadra alternativa adiado em 15 minutos" style="width:100%;padding:10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit"></textarea></div>'
   +'<div class="f"><span>Sai sozinho depois de</span><select id="t-m"><option value="0">Fica até eu tirar</option><option value="2">2 minutos</option><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="30">30 minutos</option></select></div>'
   +'<div class="btns"><button class="btn" id="t-on">Mostrar no telão</button><button class="btn gh" id="t-off">Tirar do telão</button></div><p class="mut" id="t-s" style="margin-top:10px"></p></div>'
+  +(function(){var f=(['pre','apresentacao','jogos','publicidade','entretenimento','encerramento']);var fn=['Pré-evento','Equipes','Jogos','Publicidade','Diversão','Encerramento'];var ativa=(function(){try{return localStorage.getItem('sc-telao-fase')||'jogos';}catch(e){return 'jogos';}})();return '<div class="card" id="tc-card"><h3>Fase do telão</h3><p class="mut" style="margin:6px 0 10px">Escolha o que aparece agora no telão do ginásio. Muda imediatamente.</p><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px" id="tc-fases">'+f.map(function(k,i){return '<button class="btn'+(ativa===k?' ':'  gh')+'" style="font-size:12px;padding:9px 4px;'+(ativa===k?'background:var(--b1);color:#fff;':'')+'" data-f="'+k+'" id="tc-f-'+k+'">'+fn[i]+'</button>';}).join('')+'</div><div class="btns" style="margin-top:12px"><button class="btn gh" id="tc-prev">◀ Anterior</button><button class="btn gh" id="tc-next">Próxima ▶</button><button class="btn gh" id="tc-pause">⏸ Pausar</button></div><p class="mut" id="tc-status" style="margin-top:8px">Fase ativa: <b id="tc-fase-label">'+fn[f.indexOf(ativa)]+'</b></p></div>';})()
   +'<div class="card"><h3>O que passa sozinho</h3><p class="mut" style="margin-top:6px">Classificação, jogos do dia, mata-mata (quando as quartas forem sorteadas), destaques, quiz, patrocinadores e fotos. Quando um jogo termina, o placar final aparece em cartão grande por 20 segundos. As fotos você escolhe em Mais, Galeria.</p><div class="btns" style="margin-top:10px"><a class="btn gh" href="'+TL+'" target="_blank" rel="noopener">Abrir o telão</a></div></div>'
   +'<div class="card"><h3>Overlay do placar (OBS)</h3><p class="mut" style="margin-top:6px">Coloque como fonte do tipo Browser no OBS. Use o placar manual para controlar os pontos.</p><div class="btns" style="margin-top:10px"><a class="btn gh" href="https://drdiegopadua.github.io/supercopapainelcontrole/overlay-volei.html?estilo=cinema" target="_blank" rel="noopener">Abrir overlay</a><a class="btn gh" href="https://drdiegopadua.github.io/supercopapainelcontrole/placar-manual.html" target="_blank" rel="noopener">Placar manual</a></div></div>'
   +'<div class="card"><h3>Overlay pré-jogo (OBS)</h3><p class="mut" style="margin-top:6px">Aparece antes de cada partida. Fonte Browser 1920×1080 no OBS.</p>'
@@ -357,6 +358,29 @@ function pTelao(){
   var st=function(x){$('t-s').textContent=x.ativo?'No ar agora: “'+x.texto+'”':'Nenhum aviso no ar.'};st(a);
   $('t-on').onclick=function(){var t=$('t-t').value.trim();if(!t)return toast('Escreva o aviso',1);var b=$('t-on');b.disabled=true;post('telaoAvisoSalvar',{texto:t,ativo:true,minutos:+$('t-m').value}).then(function(r){b.disabled=false;if(!r.ok)return toast(r.erro||'Erro',1);toast('Aviso no ar');st(r)})};
   $('t-off').onclick=function(){post('telaoAvisoSalvar',{texto:$('t-t').value.trim(),ativo:false}).then(function(r){if(!r.ok)return toast(r.erro||'Erro',1);toast('Aviso retirado');st(r)})};
+  // controle de fase do telão
+  (function(){
+   var FNAMES={'pre':'Pré-evento','apresentacao':'Equipes','jogos':'Jogos','publicidade':'Publicidade','entretenimento':'Diversão','encerramento':'Encerramento'};
+   var bc=null;try{bc=new BroadcastChannel('supercopa-telao');}catch(e){}
+   var pausado=false;
+   function enviar(msg){try{if(bc)bc.postMessage(msg);}catch(e){}}
+   function setFase(f){
+    try{localStorage.setItem('sc-telao-fase',f);}catch(e){}
+    enviar({type:'fase',fase:f});
+    document.querySelectorAll('#tc-fases button').forEach(function(b){
+     var on=b.dataset.f===f;
+     b.className='btn'+(on?'':' gh');
+     b.style.background=on?'var(--b1)':'';b.style.color=on?'#fff':'';
+    });
+    var lb=$('tc-fase-label');if(lb)lb.textContent=FNAMES[f]||f;
+    toast('Telão: '+FNAMES[f]);
+   }
+   document.querySelectorAll('#tc-fases button').forEach(function(b){b.onclick=function(){setFase(b.dataset.f);};});
+   $('tc-prev').onclick=function(){enviar({type:'voltar'});toast('◀');};
+   $('tc-next').onclick=function(){enviar({type:'avancar'});toast('▶');};
+   $('tc-pause').onclick=function(){pausado=!pausado;enviar({type:'pausa',val:pausado});$('tc-pause').textContent=pausado?'▶ Retomar':'⏸ Pausar';toast(pausado?'Telão pausado':'Telão retomado');};
+   if(bc)bc.onmessage=function(e){var d=e.data||{};if(d.type==='estado'&&d.fase){var lb=$('tc-fase-label');if(lb)lb.textContent=FNAMES[d.fase]||d.fase;document.querySelectorAll('#tc-fases button').forEach(function(b){var on=b.dataset.f===d.fase;b.className='btn'+(on?'':' gh');b.style.background=on?'var(--b1)':'';b.style.color=on?'#fff':'';});}};
+  })();
   $('pm-btn').onclick=function(){var base='https://drdiegopadua.github.io/supercopapainelcontrole/overlay-prematch.html',c=$('pm-casa').value.trim(),v=$('pm-vis').value.trim();if(!c||!v)return toast('Preencha os dois times',1);var q=new URLSearchParams();q.set('casa',c);q.set('visitante',v);var d=$('pm-data').value.trim(),h=$('pm-hora').value.trim(),qd=$('pm-quadra').value.trim(),g=$('pm-grupo').value;if(d)q.set('data',d);if(h)q.set('horario',h);if(qd)q.set('quadra',qd);if(g)q.set('grupo',g);window.open(base+'?'+q.toString(),'_blank')};
  })}
 function pChat(){
