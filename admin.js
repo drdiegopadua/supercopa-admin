@@ -379,6 +379,11 @@ function pTelao(){
    $('tc-prev').onclick=function(){enviar({type:'voltar'});toast('◀');};
    $('tc-next').onclick=function(){enviar({type:'avancar'});toast('▶');};
    $('tc-pause').onclick=function(){pausado=!pausado;enviar({type:'pausa',val:pausado});$('tc-pause').textContent=pausado?'▶ Retomar':'⏸ Pausar';toast(pausado?'Telão pausado':'Telão retomado');};
+   var telas=[['quiz','🧠 Quiz'],['destaque','🏅 Atleta Destaque'],['galera','📸 Galera'],['classificacao','📊 Classificação'],['publicidade','🎯 Patrocinadores']];
+   var tlDiv=document.createElement('div');tlDiv.style.cssText='margin-top:10px';
+   tlDiv.innerHTML='<p class="mut" style="margin-bottom:6px;font-size:12px">Ir direto para a tela:</p><div class="btns" style="flex-wrap:wrap;gap:6px">'+telas.map(function(t){return '<button class="btn gh" style="font-size:11px;padding:7px 10px" data-tela="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div>';
+   tlDiv.querySelectorAll('button[data-tela]').forEach(function(b){b.onclick=function(){enviar({type:'tela',tela:b.dataset.tela});toast('▶ '+b.textContent.trim());};});
+   $('tc-card').appendChild(tlDiv);
    if(bc)bc.onmessage=function(e){var d=e.data||{};if(d.type==='estado'&&d.fase){var lb=$('tc-fase-label');if(lb)lb.textContent=FNAMES[d.fase]||d.fase;document.querySelectorAll('#tc-fases button').forEach(function(b){var on=b.dataset.f===d.fase;b.className='btn'+(on?'':' gh');b.style.background=on?'var(--b1)':'';b.style.color=on?'#fff':'';});}};
   })();
   $('pm-btn').onclick=function(){var base='https://drdiegopadua.github.io/supercopapainelcontrole/overlay-prematch.html',c=$('pm-casa').value.trim(),v=$('pm-vis').value.trim();if(!c||!v)return toast('Preencha os dois times',1);var q=new URLSearchParams();q.set('casa',c);q.set('visitante',v);var d=$('pm-data').value.trim(),h=$('pm-hora').value.trim(),qd=$('pm-quadra').value.trim(),g=$('pm-grupo').value;if(d)q.set('data',d);if(h)q.set('horario',h);if(qd)q.set('quadra',qd);if(g)q.set('grupo',g);window.open(base+'?'+q.toString(),'_blank')};
