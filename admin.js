@@ -407,7 +407,7 @@ function pTelao(){
     }).catch(function(e){if(e&&e.message==='cancelado')return;bad++;toast((e&&e.message)||'Erro na foto',1)}).then(function(){prox(i+1)});
    })(0);
   };
-  get('galeriaLista').then(function(d){telaoSecao(el,d.fotos||[])});
+  get('galeriaLista').then(function(d){telaoSecao(el,d.fotos||[]);telaoVideosSecao(el)});
  })}
 function pChat(){
  var el=$('t-chat');el.innerHTML=skel();
@@ -431,8 +431,11 @@ function galLer(file){return new Promise(function(ok,er){var u=URL.createObjectU
 function galReduz(im,max,q){var w=im.naturalWidth,h=im.naturalHeight,k=Math.min(1,max/Math.max(w,h)),cw=Math.max(1,Math.round(w*k)),ch=Math.max(1,Math.round(h*k)),c=document.createElement('canvas');c.width=cw;c.height=ch;c.getContext('2d').drawImage(im,0,0,cw,ch);return {data:c.toDataURL('image/jpeg',q),w:cw,h:ch}}
 /* ---------- recorte de imagem no tamanho do quadro do telão ---------- */
 function dataImg(u){return new Promise(function(ok,er){var im=new Image();im.onload=function(){ok(im)};im.onerror=function(){er(new Error('Imagem inválida'))};im.src=u})}
-function recortar(file,o){
- return new Promise(function(ok,no){galLer(file).then(function(im){
+function recortar(fileOrUrl,o){
+ var load=typeof fileOrUrl==='string'
+  ?new Promise(function(r,er){var im=new Image();im.crossOrigin='anonymous';im.onload=function(){r(im)};im.onerror=function(){er(new Error('Foto não carregou'))};im.src=fileOrUrl})
+  :galLer(fileOrUrl);
+ return new Promise(function(ok,no){load.then(function(im){
   var m=document.createElement('div');m.className='cropm';
   m.innerHTML='<div class="cp"><b>'+esc(o.titulo||'Enquadrar foto')+'</b><small>Arraste a foto para posicionar e use o controle para aproximar. A área clara é o que aparece.</small><div class="cf" id="cf"><canvas id="cc"></canvas><div class="cg'+(o.circulo?' ci':'')+'"></div></div><input type="range" id="cz" min="100" max="400" value="100"><div class="btns"><button type="button" class="btn gh" id="cn">Cancelar</button><button type="button" class="btn" id="cu">Usar recorte</button></div></div>';
   document.body.appendChild(m);
@@ -455,18 +458,90 @@ function recortar(file,o){
 function telaoSecao(el,up){
  var SITE='https://www.supercopaafc.com.br/';
  return Promise.all([get('telaoFotos'),fetch(SITE+'galeria/galeria.json').then(function(r){return r.json()}).catch(function(){return {fotos:[]}})]).then(function(r){
-  var sel=r[0]&&r[0].ids,all=[].concat(up.map(function(f){return {id:String(f.id),t:f.t}}),((r[1]&&r[1].fotos)||[]).map(function(f){return {id:'s-'+f.id,t:SITE+f.t}}));
+  var sel=r[0]&&r[0].ids,all=[].concat(up.map(function(f){return {id:String(f.id),t:f.t,full:f.f||f.t}}),((r[1]&&r[1].fotos)||[]).map(function(f){return {id:'s-'+f.id,t:SITE+f.t,full:SITE+(f.f||f.t)}}));
   var on={};(sel||all.map(function(f){return f.id})).forEach(function(i){on[i]=1});
-  var box=document.createElement('div');box.innerHTML='<div class="sec"><h2>Fotos no telão</h2><small id="tl-n"></small></div><div class="card"><p class="mut" style="margin-bottom:10px">Toque nas fotos que devem passar no telão de LED. As marcadas em azul aparecem.</p><div class="btns"><button class="btn gh" id="tl-t">Marcar todas</button><button class="btn gh" id="tl-x">Limpar</button><button class="btn" id="tl-s">Salvar seleção</button></div><div id="tl-g" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px;max-height:60vh;overflow:auto"></div></div>';
+  var box=document.createElement('div');
+  box.innerHTML='<div class="sec"><h2>Fotos no telão</h2><small id="tl-n"></small></div>'
+   +'<div class="card"><p class="mut" style="margin-bottom:10px">Toque na foto para marcar/desmarcar. Use ✂ para recortar no formato do telão (2,1:1) antes de publicar.</p>'
+   +'<div class="btns"><button class="btn gh" id="tl-t">Marcar todas</button><button class="btn gh" id="tl-x">Limpar</button><button class="btn" id="tl-s">Salvar seleção</button></div>'
+   +'<div id="tl-g" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px;max-height:70vh;overflow:auto"></div></div>';
   el.appendChild(box);
-  function draw(){var n=Object.keys(on).filter(function(k){return on[k]}).length;$('tl-n').textContent=n+' de '+all.length+' no telão';
-   $('tl-g').innerHTML=all.map(function(f){return '<button type="button" data-i="'+esc(f.id)+'" style="padding:0;border:3px solid '+(on[f.id]?'#1b52e0':'transparent')+';background:none;position:relative"><img src="'+esc(f.t)+'" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;opacity:'+(on[f.id]?1:.35)+'">'+(on[f.id]?'<span style="position:absolute;right:3px;top:3px;background:#1b52e0;color:#fff;width:20px;height:20px;border-radius:50%;font:800 13px/20px sans-serif;text-align:center">✓</span>':'')+'</button>'}).join('')}
+  function draw(){
+   var n=Object.keys(on).filter(function(k){return on[k]}).length;
+   document.getElementById('tl-n').textContent=n+' de '+all.length+' no telão';
+   document.getElementById('tl-g').innerHTML=all.map(function(f,fi){
+    var sel=on[f.id];
+    return '<div style="position:relative;border:3px solid '+(sel?'#1b52e0':'rgba(128,128,128,.2)')+';border-radius:8px;overflow:hidden;background:#0003">'
+     +'<button type="button" data-i="'+esc(f.id)+'" style="padding:0;border:none;background:none;display:block;width:100%;cursor:pointer">'
+     +'<img src="'+esc(f.t)+'" alt="" loading="lazy" crossorigin="anonymous" style="width:100%;aspect-ratio:2.1/1;object-fit:cover;display:block;opacity:'+(sel?1:.4)+'">'
+     +(sel?'<span style="position:absolute;left:6px;top:6px;background:#1b52e0;color:#fff;width:22px;height:22px;border-radius:50%;font:800 14px/22px sans-serif;text-align:center;pointer-events:none">✓</span>':'')
+     +'</button>'
+     +'<button type="button" data-c="'+fi+'" title="Recortar" style="position:absolute;right:6px;top:6px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✂</button>'
+     +'</div>';
+   }).join('');
+  }
   draw();
-  $('tl-g').onclick=function(e){var b=e.target.closest('button[data-i]');if(!b)return;on[b.dataset.i]=!on[b.dataset.i];draw()};
-  $('tl-t').onclick=function(){all.forEach(function(f){on[f.id]=1});draw()};
-  $('tl-x').onclick=function(){on={};draw()};
-  $('tl-s').onclick=function(){var b=$('tl-s');b.disabled=true;var ids=all.map(function(f){return f.id}).filter(function(i){return on[i]});post('telaoFotosSalvar',{ids:ids.length===all.length?null:ids}).then(function(x){b.disabled=false;if(!x.ok)return toast(x.erro||'Erro ao salvar',1);toast(ids.length+' foto(s) no telão')})};
+  document.getElementById('tl-g').addEventListener('click',function(e){
+   var c=e.target.closest('[data-c]');
+   if(c){
+    var fi=parseInt(c.dataset.c),f=all[fi];if(!f)return;
+    var url=f.full||f.t;
+    recortar(url,{asp:2.1,saida:1800,titulo:'Recortar para o telão'}).then(dataImg).then(function(im){
+     var fd=galReduz(im,1800,.82);if(fd.data.length>2300000)fd=galReduz(im,1600,.68);
+     var t=galReduz(im,720,.78);
+     return post('galeriaEnviar',{full:fd.data,thumb:t.data,w:fd.w,h:fd.h,tw:t.w,th:t.h,telao:true});
+    }).then(function(rx){
+     if(rx&&rx.ok){
+      toast('Foto recortada adicionada ao telão');
+      if(rx.id){var nid=String(rx.id);all.push({id:nid,t:f.t,full:f.full||f.t});on[nid]=1;return get('telaoFotos').then(function(tf){var ids=((tf&&tf.ids)||[]).map(String);if(ids.indexOf(nid)<0)ids.push(nid);return post('telaoFotosSalvar',{ids:ids})}).then(function(){draw()})}
+     }else toast((rx&&rx.erro)||'Erro no recorte',1);
+    }).catch(function(e2){if(e2&&e2.message==='cancelado')return;toast((e2&&e2.message)||'Erro',1)});
+    return;
+   }
+   var b=e.target.closest('button[data-i]');if(!b)return;on[b.dataset.i]=!on[b.dataset.i];draw();
+  });
+  document.getElementById('tl-t').onclick=function(){all.forEach(function(f){on[f.id]=1});draw()};
+  document.getElementById('tl-x').onclick=function(){on={};draw()};
+  document.getElementById('tl-s').onclick=function(){var b=document.getElementById('tl-s');b.disabled=true;var ids=all.map(function(f){return f.id}).filter(function(i){return on[i]});post('telaoFotosSalvar',{ids:ids.length===all.length?null:ids}).then(function(x){b.disabled=false;if(!x.ok)return toast(x.erro||'Erro ao salvar',1);toast(ids.length+' foto(s) no telão')})};
  })}
+function telaoVideosSecao(el){
+ var TIPOS={melhores:'🎬 Melhores momentos',institucional:'📺 Supercopa TV',patrocinador:'🤝 Patrocinador'};
+ var FASES={pre:'Pré-evento',apresentacao:'Equipes',jogos:'Jogos',publicidade:'Publicidade',entretenimento:'Diversão'};
+ var vids=[];
+ function salvar(cb){post('telaoVideosSalvar',{videos:vids}).then(function(r){if(!r||!r.ok)toast((r&&r.erro)||'Erro ao salvar vídeos',1);else toast('Vídeos salvos');if(cb)cb()}).catch(function(){toast('Erro ao salvar vídeos',1)})}
+ function render(){
+  var box=document.getElementById('tv-box');if(!box)return;
+  box.innerHTML=vids.length?vids.map(function(v,i){
+   return '<div style="display:flex;align-items:center;gap:8px;padding:10px 0;border-bottom:1px solid var(--ln)">'
+    +'<div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px">'+esc(TIPOS[v.tipo]||v.tipo)+' '+esc(v.titulo||'')+'</div>'
+    +'<div style="font-size:11px;color:var(--mute);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(v.url||'')+'</div>'
+    +'<div style="font-size:11px;color:var(--mute);margin-top:2px">'+(v.telaCheia?'Tela cheia · ':'')+((v.fases||[]).map(function(f){return FASES[f]||f}).join(', ')||'Todas as fases')+'</div></div>'
+    +'<button type="button" class="btn gh" data-vd="'+i+'" style="flex:none;font-size:12px;padding:6px 10px">Remover</button></div>';
+  }).join(''):'<p class="empty">Nenhum vídeo cadastrado.</p>';
+  box.querySelectorAll('[data-vd]').forEach(function(b){b.onclick=function(){if(b.dataset.ok!=='1'){b.dataset.ok='1';b.textContent='Confirmar?';setTimeout(function(){b.dataset.ok='';b.textContent='Remover'},4000);return}vids.splice(parseInt(b.dataset.vd),1);salvar(function(){render()})}});
+ }
+ var sec=document.createElement('div');
+ sec.innerHTML='<div class="sec"><h2>Vídeos no telão</h2><small>aparecem na tela de vídeo durante o evento</small></div>'
+  +'<div class="card"><p class="mut" style="margin-bottom:12px">Adicione links diretos de vídeo (MP4). O vídeo precisa estar acessível publicamente.</p>'
+  +'<div class="f"><span>URL do vídeo (MP4)</span><input id="tv-u" type="url" placeholder="https://…/video.mp4" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit"></div>'
+  +'<div class="f"><span>Título (opcional)</span><input id="tv-ti" type="text" maxlength="80" placeholder="Melhores momentos do dia" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit"></div>'
+  +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="f"><span>Tipo</span><select id="tv-tp" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit"><option value="melhores">Melhores momentos</option><option value="institucional">Supercopa TV</option><option value="patrocinador">Patrocinador</option></select></div>'
+  +'<div class="f"><span>Fase</span><select id="tv-fs" style="width:100%;padding:8px 10px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit"><option value="">Todas as fases</option><option value="pre">Pré-evento</option><option value="jogos">Jogos</option><option value="entretenimento">Diversão</option></select></div></div>'
+  +'<label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;cursor:pointer"><input type="checkbox" id="tv-fc"> Tela cheia (ocupa o telão inteiro)</label>'
+  +'<div class="btns"><button class="btn" id="tv-add">Adicionar vídeo</button></div>'
+  +'<div id="tv-box" style="margin-top:12px"></div></div>';
+ el.appendChild(sec);
+ get('telaoVideos').then(function(d){vids=(d&&d.videos)||[];render()}).catch(function(){render()});
+ document.getElementById('tv-add').onclick=function(){
+  var url=(document.getElementById('tv-u').value||'').trim();
+  if(!url)return toast('Informe a URL do vídeo',1);
+  var v={url:url,titulo:(document.getElementById('tv-ti').value||'').trim(),tipo:document.getElementById('tv-tp').value,telaCheia:document.getElementById('tv-fc').checked};
+  var fs=document.getElementById('tv-fs').value;if(fs)v.fases=[fs];
+  vids.push(v);
+  document.getElementById('tv-u').value='';document.getElementById('tv-ti').value='';document.getElementById('tv-fc').checked=false;
+  salvar(function(){render()});
+ };
+}
 function pGaleria(){
  var el=$('t-galeria');el.innerHTML=skel();
  return get('galeriaLista').then(function(d){
@@ -476,6 +551,7 @@ function pGaleria(){
   +'<div class="f"><span>Enquadramento</span><select id="g-q"><option value="0">Original (sem recorte)</option><option value="2.1">Recortar no quadro do telão (2,1 : 1)</option><option value="1">Recortar quadrado (1 : 1)</option></select></div><input type="file" id="g-f" accept="image/*" multiple hidden><div class="btns"><button class="btn" id="g-b">Escolher fotos</button></div><p class="mut" id="g-s" style="margin-top:10px"></p></div>'
   +'<div class="sec"><h2>Enviadas pelo app</h2><small>'+fs.length+' foto(s)</small></div><div class="card">'+(fs.length?'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">'+fs.map(function(f){return '<div style="position:relative"><img src="'+esc(f.t)+'" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#0003"><button type="button" class="btn gh" data-r="'+esc(f.id)+'" style="width:100%;padding:6px 0;font-size:13px;margin-top:4px">Remover</button></div>'}).join('')+'</div>':'<p class="empty">Nenhuma foto enviada por aqui ainda.</p>')+'</div>';
   telaoSecao(el,fs);
+  telaoVideosSecao(el);
   var fi=$('g-f'),st=$('g-s');
   $('g-b').onclick=function(){fi.click()};
   fi.onchange=function(){
