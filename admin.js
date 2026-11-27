@@ -3,7 +3,7 @@
 var U='https://hngwasixgyvnvfanpuax.supabase.co/functions/v1/api';
 var PUSH='https://supercopa-push-server.onrender.com/api/push';
 var SITE='https://www.supercopaafc.com.br/',APPU='https://drdiegopadua.github.io/supercopa-app/';
-var EVENTO=new Date('2026-11-28T08:00:00-03:00'),PRAZO=new Date('2026-11-27T13:00:00-03:00');
+var EVENTO=new Date('2026-11-28T08:00:00-03:00'),PRAZO=new Date('2026-11-27T23:59:00-03:00');
 var $=function(i){return document.getElementById(i)};
 var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
 var N=function(n){return Math.round(+n||0).toLocaleString('pt-BR')};
@@ -83,7 +83,7 @@ function pPainel(){
   var uni=(cs.unicos||0)+(ca.unicos||0),tot=(cs.total||0)+(ca.total||0);
   var al=[];
   if(ms>0)al.push('<div class="al in"><div><b>Faltam '+dias+' dias para o vôlei</b>Início em 28/11/2026 às 08h, em Afonso Cláudio.</div></div>');
-  if(semAt.length&&new Date()<PRAZO)al.push('<div class="al wa"><div><b>'+semAt.length+' de '+st.length+' equipes sem atletas cadastrados</b>Prazo até 27/11 às 13h. A súmula exige atletas cadastrados.</div></div>');
+  if(semAt.length&&new Date()<PRAZO)al.push('<div class="al wa"><div><b>'+semAt.length+' de '+st.length+' equipes sem atletas cadastrados</b>Prazo até 27/11 às 23h59. A súmula exige atletas cadastrados.</div></div>');
   if(semAt.length&&new Date()>=PRAZO)al.push('<div class="al er"><div><b>Prazo encerrado com '+semAt.length+' equipes sem atletas</b>'+esc(semAt.map(function(e){return e.equipe}).join(', '))+'</div></div>');
   if(!(tv.jogos||[]).length)al.push('<div class="al wa"><div><b>Chave do vôlei ainda não criada</b>Sem ela, Jogos, Classificação e Atleta Destaque ficam vazios no site e no app.</div></div>');
   if(pu&&pu.total<30)al.push('<div class="al wa"><div><b>Só '+pu.total+' aparelho(s) com notificação ativa</b>Incentive o pessoal a ativar as notificações no app.</div></div>');
@@ -135,7 +135,7 @@ function pElencos(){
   var tot=rows.reduce(function(s,x){return s+x.atl.length},0),meta=rows.length*LIM_ATL,geral=meta?Math.round(tot/meta*100):0,prontas=rows.filter(function(x){return x.ok}).length,comp=rows.filter(function(x){var e=x.e;return e.confirmou&&x.ok&&e.tecnico&&e.assTecnico&&e.assCapitao&&e.lgpd}).length;
   var pill=function(ok,t){return '<span class="pill '+(ok?'ok':'er')+'">'+t+'</span> '};
   var pend=rows.filter(function(x){var e=x.e;return !(e.confirmou&&x.ok&&e.tecnico&&e.assTecnico&&e.assCapitao&&e.lgpd)}).map(function(x){var e=x.e,f=[];if(!e.confirmou)f.push('confirmar presença');if(x.atl.length<MIN_SUM)f.push('atletas ('+x.atl.length+'/'+LIM_ATL+')');if(!e.tecnico)f.push('técnico');if(!(e.assTecnico&&e.assCapitao))f.push('assinaturas');if(!e.lgpd)f.push('termo LGPD');return '- '+e.equipe+': '+f.join(', ')});
-  var txt='Pendências de cadastro - Supercopa AFC\nPrazo: 27/11 às 13h\n\n'+(pend.length?pend.join('\n'):'Todas as equipes estão completas.');
+  var txt='Pendências de cadastro - Supercopa AFC\nPrazo: 27/11 às 23h59\n\n'+(pend.length?pend.join('\n'):'Todas as equipes estão completas.');
   el.innerHTML='<div class="sec"><h2>Visão geral</h2><small>meta: '+LIM_ATL+' atletas por equipe</small></div>'
   +'<div class="card"><div style="display:flex;align-items:baseline;gap:10px"><b style="font:800 54px/1 var(--display);color:var(--b1)">'+geral+'%</b><span class="mut">'+N(tot)+' de '+N(meta)+' vagas de atletas preenchidas</span></div><div class="nmht" style="margin-top:10px"><i style="width:'+geral+'%"></i></div>'
   +'<div class="grid kp" style="margin-top:14px;grid-template-columns:repeat(3,1fr)"><div class="kpi"><b>'+prontas+'/'+rows.length+'</b><small>com '+MIN_SUM+'+ atletas</small></div><div class="kpi"><b>'+comp+'/'+rows.length+'</b><small>completas</small></div><div class="kpi"><b>'+N(rows.reduce(function(s,x){return s+x.com.length},0))+'</b><small>na comissão</small></div></div></div>'
