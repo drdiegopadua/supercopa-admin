@@ -482,11 +482,24 @@ function telaoSecao(el,up){
      +(sel?'<span style="position:absolute;left:6px;top:6px;background:#1b52e0;color:#fff;width:22px;height:22px;border-radius:50%;font:800 14px/22px sans-serif;text-align:center;pointer-events:none">✓</span>':'')
      +'</button>'
      +'<button type="button" data-c="'+fi+'" title="Recortar" style="position:absolute;right:6px;top:6px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center">✂</button>'
+     +(f.id.indexOf('s-')===0?'':'<button type="button" data-d="'+fi+'" title="Excluir foto" style="position:absolute;right:6px;bottom:6px;background:rgba(200,30,30,.9);color:#fff;border:none;border-radius:14px;min-width:28px;height:28px;padding:0 8px;font:700 13px sans-serif;cursor:pointer">🗑</button>')
      +'</div>';
    }).join('');
   }
   draw();
   document.getElementById('tl-g').addEventListener('click',function(e){
+   var dl=e.target.closest('[data-d]');
+   if(dl){
+    var fd0=all[parseInt(dl.dataset.d)];if(!fd0)return;
+    if(dl.dataset.ok!=='1'){dl.dataset.ok='1';dl.textContent='Excluir?';setTimeout(function(){if(dl.isConnected){dl.dataset.ok='';dl.textContent='🗑'}},4000);return}
+    dl.disabled=true;
+    post('galeriaRemover',{id:fd0.id}).then(function(rr){
+     if(!rr||!rr.ok){dl.disabled=false;return toast((rr&&rr.erro)||'Erro ao excluir',1)}
+     all=all.filter(function(x){return x.id!==fd0.id});delete on[fd0.id];draw();toast('Foto excluída');
+     return get('telaoFotos').then(function(tf){var ids=tf&&tf.ids;if(!ids)return;ids=ids.map(String).filter(function(i){return i!==fd0.id});return post('telaoFotosSalvar',{ids:ids})});
+    }).catch(function(){dl.disabled=false;toast('Erro ao excluir',1)});
+    return;
+   }
    var c=e.target.closest('[data-c]');
    if(c){
     var fi=parseInt(c.dataset.c),f=all[fi];if(!f)return;
