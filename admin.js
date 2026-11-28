@@ -379,7 +379,7 @@ function pTelao(){
    $('tc-prev').onclick=function(){enviar({type:'voltar'});toast('◀');};
    $('tc-next').onclick=function(){enviar({type:'avancar'});toast('▶');};
    $('tc-pause').onclick=function(){pausado=!pausado;enviar({type:'pausa',val:pausado});$('tc-pause').textContent=pausado?'▶ Retomar':'⏸ Pausar';toast(pausado?'Telão pausado':'Telão retomado');};
-   var telas=[['quiz','🧠 Quiz'],['destaque','🏅 Atleta Destaque'],['galera','📸 Galera'],['classificacao','📊 Classificação'],['publicidade','🎯 Patrocinadores']];
+   var telas=[['quiz','🧠 Quiz'],['destaque','🏅 Destaque da Galera'],['galera','📸 Galera'],['classificacao','📊 Classificação'],['publicidade','🎯 Patrocinadores']];
    var tlDiv=document.createElement('div');tlDiv.style.cssText='margin-top:10px';
    tlDiv.innerHTML='<p class="mut" style="margin-bottom:6px;font-size:12px">Ir direto para a tela:</p><div class="btns" style="flex-wrap:wrap;gap:6px">'+telas.map(function(t){return '<button class="btn gh" style="font-size:11px;padding:7px 10px" data-tela="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div>';
    tlDiv.querySelectorAll('button[data-tela]').forEach(function(b){b.onclick=function(){enviar({type:'tela',tela:b.dataset.tela});toast('▶ '+b.textContent.trim());};});
