@@ -394,6 +394,29 @@ function pTelao(){
    tlDiv.innerHTML='<p class="mut" style="margin-bottom:6px;font-size:12px">Ir direto para a tela:</p><div class="btns" style="flex-wrap:wrap;gap:6px">'+telas.map(function(t){return '<button class="btn gh" style="font-size:11px;padding:7px 10px" data-tela="'+t[0]+'">'+t[1]+'</button>';}).join('')+'</div>';
    tlDiv.querySelectorAll('button[data-tela]').forEach(function(b){b.onclick=function(){enviar({type:'tela',tela:b.dataset.tela});toast('▶ '+b.textContent.trim());};});
    $('tc-card').appendChild(tlDiv);
+   // loop personalizado: gravado no banco, o telão obedece de qualquer aparelho
+   var DURP={contagem:20,boasvindas:20,equipes:60,aovivo:30,proximo:15,classificacao:20,resultado:18,destaquepartida:18,publicidade:15,quiz:20,destaque:20,galera:25,video:30,podio:18,campeao:25,premiacao:22,agradecimento:18};
+   var lpDiv=document.createElement('div');lpDiv.className='card';
+   lpDiv.innerHTML='<h3>Loop do telão</h3><p class="mut" style="margin:6px 0 10px">Marque as telas que passam em sequência e o tempo de cada uma. Sem nenhuma marcada, o telão segue a sequência da fase.</p><p class="mut" id="lp-st" style="margin-bottom:8px;font-weight:700"></p><div id="lp-l"></div><div class="btns" style="margin-top:12px"><button class="btn" id="lp-s">Salvar loop</button><button class="btn gh" id="lp-f">Usar a sequência da fase</button></div>';
+   $('tc-card').parentNode.insertBefore(lpDiv,$('tc-card').nextSibling);
+   var lpSel={},lpDur={};
+   function lpDraw(){
+    var n=telas.filter(function(t){return lpSel[t[0]]}).length;
+    $('lp-st').textContent=n?n+' tela(s) no loop':'Seguindo a sequência da fase';
+    $('lp-l').innerHTML=telas.map(function(t){var k=t[0];return '<label style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(128,128,128,.15)"><input type="checkbox" data-lc="'+k+'"'+(lpSel[k]?' checked':'')+' style="width:20px;height:20px;accent-color:#1b52e0"><span style="flex:1;font-weight:700">'+t[1]+'</span><input type="number" data-ld="'+k+'" min="5" max="300" value="'+(lpDur[k]||DURP[k]||20)+'" style="width:64px;padding:6px;border-radius:8px;border:1px solid rgba(128,128,128,.4);background:transparent;color:inherit;font:inherit;text-align:right"><small class="mut">s</small></label>'}).join('');
+    $('lp-l').querySelectorAll('[data-lc]').forEach(function(c){c.onchange=function(){lpSel[c.dataset.lc]=c.checked;var n2=telas.filter(function(t){return lpSel[t[0]]}).length;$('lp-st').textContent=n2?n2+' tela(s) no loop':'Seguindo a sequência da fase'}});
+    $('lp-l').querySelectorAll('[data-ld]').forEach(function(c){c.onchange=function(){var v=Math.max(5,Math.min(300,Math.round(+c.value||0)));c.value=v;lpDur[c.dataset.ld]=v}});
+   }
+   function lpEnviar(sel){
+    var ts=telas.map(function(t){return t[0]}).filter(function(k){return sel&&lpSel[k]});
+    var dur={};telas.forEach(function(t){dur[t[0]]=lpDur[t[0]]||DURP[t[0]]||20});
+    enviar({type:'loop',telas:ts,dur:dur});toast(ts.length?'Loop salvo: '+ts.length+' tela(s)':'Telão seguindo a fase');
+    if(!sel){lpSel={};lpDraw()}else lpDraw();
+   }
+   $('lp-s').onclick=function(){lpEnviar(true)};
+   $('lp-f').onclick=function(){lpEnviar(false)};
+   lpDraw();
+   get('telaoCmds',{desde:999999999}).then(function(j){var l=j&&j.loop;if(!l)return;lpSel={};(l.telas||[]).forEach(function(k){lpSel[k]=true});lpDur=l.dur||{};lpDraw()}).catch(function(){});
    if(bc)bc.onmessage=function(e){var d=e.data||{};if(d.type==='estado'&&d.fase){var lb=$('tc-fase-label');if(lb)lb.textContent=FNAMES[d.fase]||d.fase;document.querySelectorAll('#tc-fases button').forEach(function(b){var on=b.dataset.f===d.fase;b.className='btn'+(on?'':' gh');b.style.background=on?'var(--b1)':'';b.style.color=on?'#fff':'';});}};
   })();
   $('pm-btn').onclick=function(){var base='https://drdiegopadua.github.io/supercopapainelcontrole/overlay-prematch.html',c=$('pm-casa').value.trim(),v=$('pm-vis').value.trim();if(!c||!v)return toast('Preencha os dois times',1);var q=new URLSearchParams();q.set('casa',c);q.set('visitante',v);var d=$('pm-data').value.trim(),h=$('pm-hora').value.trim(),qd=$('pm-quadra').value.trim(),g=$('pm-grupo').value;if(d)q.set('data',d);if(h)q.set('horario',h);if(qd)q.set('quadra',qd);if(g)q.set('grupo',g);window.open(base+'?'+q.toString(),'_blank')};
