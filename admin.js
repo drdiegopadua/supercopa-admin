@@ -363,7 +363,11 @@ function pTelao(){
    var FNAMES={'pre':'Pré-evento','apresentacao':'Equipes','jogos':'Jogos','publicidade':'Publicidade','entretenimento':'Diversão','encerramento':'Encerramento'};
    var bc=null;try{bc=new BroadcastChannel('supercopa-telao');}catch(e){}
    var pausado=false;
-   function enviar(msg){try{if(bc)bc.postMessage(msg);}catch(e){}}
+   function enviar(msg){
+    msg=Object.assign({cid:Date.now().toString(36)+Math.random().toString(36).slice(2,8)},msg);
+    try{if(bc)bc.postMessage(msg);}catch(e){}
+    post('telaoCmd',{cmd:msg}).then(function(r){if(!r||!r.ok)toast('Telão: '+((r&&r.erro)||'não recebeu'),1)}).catch(function(){toast('Telão: sem conexão',1)});
+   }
    function setFase(f){
     try{localStorage.setItem('sc-telao-fase',f);}catch(e){}
     enviar({type:'fase',fase:f});
@@ -378,6 +382,12 @@ function pTelao(){
    document.querySelectorAll('#tc-fases button').forEach(function(b){b.onclick=function(){setFase(b.dataset.f);};});
    $('tc-prev').onclick=function(){enviar({type:'voltar'});toast('◀');};
    $('tc-next').onclick=function(){enviar({type:'avancar'});toast('▶');};
+   var mdDiv=document.createElement('div');mdDiv.style.cssText='margin-top:10px';
+   var fixoAtual=(function(){try{return localStorage.getItem('sc-telao-fixo')==='1'}catch(e){return false}})();
+   mdDiv.innerHTML='<p class="mut" style="margin-bottom:6px;font-size:12px">Modo:</p><div class="btns"><button class="btn" data-m="0">🔁 Loop</button><button class="btn" data-m="1">📌 Tela fixa</button></div>';
+   function pintaModo(){mdDiv.querySelectorAll('button[data-m]').forEach(function(b){var on=(b.dataset.m==='1')===fixoAtual;b.className='btn'+(on?'':' gh')})}
+   mdDiv.querySelectorAll('button[data-m]').forEach(function(b){b.onclick=function(){fixoAtual=b.dataset.m==='1';try{localStorage.setItem('sc-telao-fixo',fixoAtual?'1':'0')}catch(e){}enviar({type:'modo',fixo:fixoAtual});pintaModo();toast(fixoAtual?'Telão: tela fixa':'Telão: loop')}});
+   pintaModo();$('tc-card').appendChild(mdDiv);
    $('tc-pause').onclick=function(){pausado=!pausado;enviar({type:'pausa',val:pausado});$('tc-pause').textContent=pausado?'▶ Retomar':'⏸ Pausar';toast(pausado?'Telão pausado':'Telão retomado');};
    var telas=[['quiz','🧠 Quiz'],['destaque','🏅 Destaque da Galera'],['destaquepartida','⭐ Destaque da partida'],['galera','📸 Galera'],['classificacao','📊 Classificação'],['publicidade','🎯 Patrocinadores']];
    var tlDiv=document.createElement('div');tlDiv.style.cssText='margin-top:10px';
